@@ -1,0 +1,15 @@
+# Regular git settings
+.git
+.github
+.DS_Store
+.gitignore
+
+# Ignore self
+Dockerfile
+
+# Omit documentation
+*.md
+LICENSE
+
+# Don't include example config files
+approval-config-example.yaml

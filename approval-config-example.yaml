@@ -1,0 +1,8 @@
+repository:
+  owner/dummy-test-project:
+    allowed_approvers:
+      - john.doe
+  organization/test/test-repo:
+    allowed_approvers:
+      - jane.doe
+      - example.user
