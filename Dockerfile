@@ -85,5 +85,7 @@ COPY check-gitlab-approvals.sh /usr/local/bin/check-gitlab-approvals.sh
 RUN chmod a+x /usr/local/bin/docker-entrypoint.sh && \
     chmod a+x /usr/local/bin/check-gitlab-approvals.sh
 
+USER atlantis
+
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["server"]
