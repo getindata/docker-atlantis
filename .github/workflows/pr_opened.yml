@@ -5,8 +5,8 @@ on:
     branches:
       - 'main'
       - 'master'
-#    paths:
-#      - ${{ env.DOCKERFILE_PATH }}/Dockerfile
+    paths:
+      - "${{ env.DOCKERFILE_PATH }}/**"
 
 env:
   DOCKERFILE_PATH: app
