@@ -71,12 +71,11 @@ During the execution, script checks if any of approving users are present in `ap
 
 ## BUILDING
 
-```bash
-docker build -t IMAGE_REPO/IMAGE_NAME:TAG .
-docker push docker push IMAGE_REPO/IMAGE_NAME:TAG
-```
+Pull requests are built automatically using https://github.com/getindata/docker-image-template
 
 ## IMAGES
+
+Merged pull requests create new release and upload new images automatically. Check changelog for details.
 
 ## USAGE
 

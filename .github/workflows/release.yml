@@ -81,6 +81,8 @@ jobs:
 
             {range}
 
+            The new image is available at ${{ env.REGISTRY_PATH }}:${{ steps.bump-semver.outputs.new_version }} :tada:
+
       - name: Comment PR
         id: add-comment
         uses: actions-ecosystem/action-create-comment@v1
