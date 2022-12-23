@@ -1,0 +1,16 @@
+# git files
+.git
+.gitattributes
+.gitignore
+.cache
+
+# markdown files
+*.md
+LICENSE
+
+# docker files
+docker-compose.yml
+Dockerfile
+
+# Don't include example config files
+approval-config-example.yaml
