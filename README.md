@@ -1,8 +1,8 @@
 # Docker Atlantis Image
 
-![Docker Image Version (latest by date)](https://img.shields.io/docker/v/getindata/docker-atlantis?arch=amd64&logo=docker&sort=date&style=for-the-badge)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/getindata/docker-atlantis?logo=docker&sort=date&style=for-the-badge)
-![Docker Pulls](https://img.shields.io/docker/pulls/getindata/docker-atlantis?logo=docker&style=for-the-badge)
+<!--- Build Badges -->
+[![build test scan docker images](https://github.com/getindata/docker-atlantis/actions/workflows/pr_opened.yml/badge.svg)](https://github.com/getindata/docker-atlantis/actions/workflows/pr_opened.yml)
+[![create new release with changelog](https://github.com/getindata/docker-atlantis/actions/workflows/release.yml/badge.svg)](https://github.com/getindata/docker-atlantis/actions/workflows/release.yml)
 
 <!--- Replace repository name -->
 ![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)
