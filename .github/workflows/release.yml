@@ -1,0 +1,91 @@
+name: create new release with changelog
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+      - 'master'
+    types: [closed]
+
+env:
+  DOCKERFILE_PATH: app
+  DOCKERFILE_TAG: ${{ github.event.pull_request.head.sha }}
+  REGISTRY_PATH: gcr.io/getindata-images-public/docker-atlantis
+  REGISTRY_TYPE: "gcr.io" # If not set then will default to Docker Hub
+  REGISTRY_USERNAME: _json_key
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 100
+
+      - name: Check release label
+        id: release-label
+        uses: actions-ecosystem/action-release-label@v1.2.0
+        if: ${{ github.event.pull_request.merged == true }}
+
+      - name: Get latest tag
+        id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1.6.0
+        if: ${{ steps.release-label.outputs.level != null }}
+
+      - name: Bump semantic version
+        id: bump-semver
+        uses: actions-ecosystem/action-bump-semver@v1
+        if: ${{ steps.release-label.outputs.level != null }}
+        with:
+          current_version: ${{ steps.get-latest-tag.outputs.tag }}
+          level: ${{ steps.release-label.outputs.level }}
+
+      - name: Tag release
+        id: tag-relese
+        uses: actions-ecosystem/action-push-tag@v1
+        if: ${{ steps.release-label.outputs.level != null }}
+        with:
+          tag: ${{ steps.bump-semver.outputs.new_version }}
+          message: "${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}"
+
+      - name: Login to registry ${{ env.REGISTRY_TYPE }}
+        uses: docker/login-action@v2.1.0
+        if: ${{ steps.release-label.outputs.level != null }}
+        with:
+          registry: ${{ env.REGISTRY_TYPE }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Tag final docker image
+        if: ${{ steps.release-label.outputs.level != null }}
+        run: |
+          docker pull ${{ env.REGISTRY_PATH }}:${{ github.event.pull_request.head.sha }}
+          docker tag ${{ env.REGISTRY_PATH }}:${{ github.event.pull_request.head.sha }} ${{ env.REGISTRY_PATH }}:${{ steps.bump-semver.outputs.new_version }}
+          docker push ${{ env.REGISTRY_PATH }}:${{ steps.bump-semver.outputs.new_version }}
+
+      - name: Generate new release with changelog
+        id: release-with-changelog
+        uses: fregante/release-with-changelog@v3.6.0
+        if: ${{ steps.bump-semver.outputs.new_version != null }}
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          exclude: '^chore|^docs|^ci|^build|^refactor|^style|^v?\d+\.\d+\.\d+'
+          tag: "${{ steps.bump-semver.outputs.new_version }}"
+          title: "Version ${{ steps.bump-semver.outputs.new_version }}"
+          commit-template: "- {title} ← {hash}"
+          skip-on-empty: true
+          template: |
+            ### Changelog
+
+            {commits}
+
+            {range}
+
+      - name: Comment PR
+        id: add-comment
+        uses: actions-ecosystem/action-create-comment@v1
+        if: ${{ steps.bump-semver.outputs.new_version != null }}
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          body: |
+            The new version [${{ steps.bump-semver.outputs.new_version }}](https://github.com/${{ github.repository }}/releases/tag/${{ steps.bump-semver.outputs.new_version }}) has been released :tada:

@@ -1,0 +1,119 @@
+name: build test scan docker images
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+      - 'master'
+#    paths:
+#      - ${{ env.DOCKERFILE_PATH }}/Dockerfile
+
+env:
+  DOCKERFILE_PATH: app
+  DOCKERFILE_TAG: ${{ github.event.pull_request.head.sha }}
+  REGISTRY_PATH: gcr.io/getindata-images-public/docker-atlantis
+  REGISTRY_TYPE: "gcr.io" # If not set then will default to Docker Hub
+  REGISTRY_USERNAME: _json_key
+
+jobs:
+  buildtestscan:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 100
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2.2.1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3.2.0
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ env.DOCKERFILE_TAG }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to registry "${{ env.REGISTRY_TYPE }}"
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ${{ env.REGISTRY_TYPE }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: "${{ env.DOCKERFILE_PATH }}"
+          push: true
+          tags: "${{ env.REGISTRY_PATH }}:${{ env.DOCKERFILE_TAG }}"
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Run Checkov action
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12.1347.0
+        with:
+          quiet: true # optional: display only failed checks
+          soft_fail: true # optional: do not return an error code if there are failed checks
+          framework: dockerfile
+          output_format: github_failed_only
+          log_level: WARNING # optional: set log level. Default WARNING
+          dockerfile_path: "${{ env.DOCKERFILE_PATH }}/Dockerfile" # path to the Dockerfile
+
+      - name: Show Checkov results
+        uses: actions-ecosystem/action-create-comment@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            ## Checkov 
+            ${{ env.CHECKOV_RESULTS }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.8.0
+        env:
+          TRIVY_USERNAME: ${{ env.REGISTRY_USERNAME }}
+          TRIVY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        with:
+          image-ref: "${{ env.REGISTRY_PATH }}:${{ env.DOCKERFILE_TAG }}"
+          format: 'json'
+          exit-code: '0'
+          output: results_trivy.json
+          ignore-unfixed: false
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      - name: Parse Trivy results
+        run: |
+            echo "| PkgName | InstalledVersion | Severity | Title | CVE URL |
+            | ------ | ------ | ------ | ------ | ------ |" > results_trivy.md
+            cat results_trivy.json | jq -r '.Results[].Vulnerabilities[] | [.PkgName, .InstalledVersion, .Severity, .Title, .PrimaryURL]| @tsv' |
+                      awk '
+                      BEGIN{ FS = "\t" }  # Set field separator to tab
+                      {
+                        # Step 2: Replace all tab characters with pipe characters
+                        gsub("\t", " | ", $0)
+            
+                        # Step 3: Print fields with Markdown table formatting
+                        printf "| %s |\n", $0
+                      }' >> results_trivy.md
+
+      - name: Export Trivy results
+        run: |
+          echo 'TRIVY_RESULTS<<EOF' >> $GITHUB_ENV
+          cat results_trivy.md >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Show Trivy results
+        uses: actions-ecosystem/action-create-comment@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            ## Trivy
+            ${{ env.TRIVY_RESULTS }}
+
+      - name: Move cache
+        if: always() # always run even if the previous step fails
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
