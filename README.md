@@ -27,6 +27,7 @@ That custom `atlantis` docker image was created in order to install few helpful 
 - `jq` (via asdf) - command line JSON parser
 - `yq` (via asdf) - command like YAML parser
 - `glab` (via asdf) - GitLab CLI client
+- `azure-cli` (via asdf) - Azure CLI client
 
 Files found in the repo:
 
