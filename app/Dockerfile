@@ -15,6 +15,7 @@ ARG CONFTEST_VERSION=v0.35.0
 ARG GLAB_VERSION=1.24.1
 ARG JQ_VERSION=1.6
 ARG YQ_VERSION=4.9.8
+ARG AZCLI_VERSION=2.44.1
 
 
 # Install awscli and checkov dependencies
@@ -53,7 +54,8 @@ RUN gosu atlantis bash -l -c " \
     asdf plugin-add conftest && \
     asdf plugin-add glab && \
     asdf plugin-add jq && \
-    asdf plugin-add yq"
+    asdf plugin-add yq && \
+    asdf plugin-add azure-cli"
 # Install default versions and define them globally
 RUN gosu atlantis bash -l -c " \
     cd /home/atlantis/ && \
@@ -65,6 +67,7 @@ RUN gosu atlantis bash -l -c " \
     asdf install glab ${GLAB_VERSION} && \
     asdf install jq ${JQ_VERSION} && \
     asdf install yq ${YQ_VERSION} && \
+    asdf install azure-cli ${AZCLI_VERSION} && \
     asdf global kubectl ${K8S_VERSION} && \
     asdf global helm ${HELM_VERSION} && \
     asdf global terraform ${TF_VERSION} && \
@@ -72,7 +75,8 @@ RUN gosu atlantis bash -l -c " \
     asdf global conftest ${CONFTEST_VERSION} && \
     asdf global glab ${GLAB_VERSION} && \
     asdf global jq ${JQ_VERSION} && \
-    asdf global yq ${YQ_VERSION}"
+    asdf global yq ${JQ_VERSION} && \
+    asdf global azure-cli ${AZCLI_VERSION}"
 
 # Additional cleanup
 RUN rm -rf /tmp/*
