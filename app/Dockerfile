@@ -98,8 +98,8 @@ RUN mkdir -p /home/atlantis/.ssh && \
     chmod 0700 /home/atlantis/.ssh && \
     touch /home/atlantis/.ssh/known_hosts && \
     chmod 0600 /home/atlantis/.ssh/known_hosts && \
-    ssh-keygen -R github.com && \
-    ssh-keygen -R gitlab.com
+    ssh-keyscan -H github.com >> /home/atlantis/.ssh/known_hosts && \
+    ssh-keyscan -H gitlab.com >> /home/atlantis/.ssh/known_hosts
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["server"]
