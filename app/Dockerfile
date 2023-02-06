@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG ATLANTIS_BASE_VERSION=2022.12.12
+ARG ATLANTIS_BASE_VERSION=2023.01.31
 # The runatlantis/atlantis-base is created by docker-base/Dockerfile.
 FROM ghcr.io/runatlantis/atlantis-base:${ATLANTIS_BASE_VERSION} AS base
 
@@ -15,14 +15,19 @@ ARG CONFTEST_VERSION=v0.35.0
 ARG GLAB_VERSION=1.24.1
 ARG JQ_VERSION=1.6
 ARG YQ_VERSION=4.9.8
+ARG AZURE_CLI_VERSION=2.44.1
 
+RUN set -ex && \
+    apk update && \
+    apk add bash py3-pip curl && \
+    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make curl unzip
 
-# Install awscli and checkov dependencies
-# RUN apk --no-cache add grep zlib-dev libffi-dev gcompat groff openssl3-dev python3 python3-dev py3-pip build-base gcc && \
-#     pip3 --no-cache-dir install wheel && \
-#     pip3 --no-cache-dir install checkov && \
-#     pip3 cache purge && \
-#     apk --no-cache del python3-dev build-base gcc
+###
+### Ensure Azure cli version is present and validated
+###
+RUN set -eux \
+    && pip install azure-cli==${AZURE_CLI_VERSION} \
+    && az --version
 
 # Download and install Atlantis
 RUN curl -LOs https://github.com/runatlantis/atlantis/releases/download/${ATLANTIS_VERSION}/atlantis_linux_amd64.zip && \
@@ -87,6 +92,14 @@ RUN chmod a+x /usr/local/bin/docker-entrypoint.sh && \
     chmod a+x /usr/local/bin/check-gitlab-approvals.sh
 
 USER atlantis
+
+# Add GitHub and GitLab to known keys file for safe SSH connections
+RUN mkdir -p /home/atlantis/.ssh && \
+    chmod 0700 /home/atlantis/.ssh && \
+    touch /home/atlantis/.ssh/known_hosts && \
+    chmod 0600 /home/atlantis/.ssh/known_hosts && \
+    ssh-keygen -R github.com && \
+    ssh-keygen -R gitlab.com
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["server"]

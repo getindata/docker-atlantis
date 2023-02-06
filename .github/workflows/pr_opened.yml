@@ -6,7 +6,7 @@ on:
       - 'main'
       - 'master'
     paths:
-      - "${{ env.DOCKERFILE_PATH }}/**"
+      - app/**
 
 env:
   DOCKERFILE_PATH: app
@@ -66,7 +66,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            ## Checkov 
+            ## Checkov
             ${{ env.CHECKOV_RESULTS }}
 
       - name: Run Trivy vulnerability scanner
@@ -93,7 +93,7 @@ jobs:
                       {
                         # Step 2: Replace all tab characters with pipe characters
                         gsub("\t", " | ", $0)
-            
+
                         # Step 3: Print fields with Markdown table formatting
                         printf "| %s |\n", $0
                       }' >> results_trivy.md
