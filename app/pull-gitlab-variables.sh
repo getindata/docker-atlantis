@@ -53,5 +53,16 @@ if [ ${#RESULT[@]} -gt 0 ]; then
   exit 1;
 fi
 
-MULTIENV_RESULT=${MULTIENV_RESULT%,}
-echo $MULTIENV_RESULT
+ENV_VARS_TO_MASK=($(comm -23 <(printf '%s\n' ${ALLOWLIST_ENV_VAR_ARRAY[@]}) <(printf '%s\n' ${ENV_VARS[@]})))
+for v in $ENV_VARS_TO_MASK
+do
+  MULTIENV_RESULT+="${v}=",
+done
+
+FILES_TO_MASK=($(comm -23 <(printf '%s\n' ${ALLOWLIST_FILE_ARRAY[@]}) <(printf '%s\n' ${FILES[@]})))
+for v in $FILES_TO_MASK
+do
+  MULTIENV_RESULT+="${v}=",
+done
+
+echo ${MULTIENV_RESULT%,}
