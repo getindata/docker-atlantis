@@ -6,6 +6,10 @@
 # - HEAD_REPO_NAME
 # - ALLOWLIST_FILE e.g. GOOGLE_APPLICATION_CREDENTIALS
 # - ALLOWLIST_ENV_VAR e.g. AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
+# - REPO_REL_DIR e.g environments/dev/cicd/azure
+
+ENV_SCOPE=$(echo $REPO_REL_DIR | sed -nE 's/.*\/(dev|test|prod|staging)\/.*/\1/p')
+${ENV_SCOPE:=*}
 
 
 ALLOWLIST_ENV_VAR_ARRAY=($(printf '%s\n' ${ALLOWLIST_ENV_VAR//,/ } | sort))
@@ -19,7 +23,7 @@ API_RESPONSE=$(glab api projects/$ENCODED_REPO_NAME/variables)
 MULTIENV_RESULT=""
 
 
-ENV_VAR_VARIABLES=$(echo $API_RESPONSE | jq -c '.[] | select(.variable_type == "env_var") | {key, value, environment_scope}' | jq -cs 'sort_by(.key) | .[]')
+ENV_VAR_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value}" | jq -cs 'sort_by(.key) | .[]')
 for v in $ENV_VAR_VARIABLES
 do
   name=$(echo $v | jq -r '.key')
@@ -27,7 +31,7 @@ do
   MULTIENV_RESULT+="${name}=${content}",
 done
 
-ENV_VARS=$(echo $API_RESPONSE | jq -cr '[.[] | select(.variable_type == "env_var").key] | sort | .[]')
+ENV_VARS=$(echo $API_RESPONSE | jq -cr "[.[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")).key] | sort | .[]")
 RESULT=($(comm -13 <(printf '%s\n' ${ALLOWLIST_ENV_VAR_ARRAY[@]}) <(printf '%s\n' ${ENV_VARS[@]})))
 
 if [ ${#RESULT[@]} -gt 0 ]; then
@@ -35,7 +39,7 @@ if [ ${#RESULT[@]} -gt 0 ]; then
   exit 1;
 fi
 
-FILE_VARIABLES=$(echo $API_RESPONSE | jq -c '.[] | select(.variable_type == "file") | {key, value, environment_scope}' | jq -cs 'sort_by(.key) | .[]')
+FILE_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value}" | jq -cs 'sort_by(.key) | .[]')
 for v in $FILE_VARIABLES
 do
   name=$(echo $v | jq -r '.key')
@@ -45,7 +49,7 @@ do
   MULTIENV_RESULT+="${name}=${randomized_name}",
 done
 
-FILES=$(echo $API_RESPONSE | jq -cr '[.[] | select(.variable_type == "file").key] | sort | .[]')
+FILES=$(echo $API_RESPONSE | jq -cr "[.[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")).key] | sort | .[]")
 RESULT=($(comm -13 <(printf '%s\n' ${ALLOWLIST_FILE_ARRAY[@]}) <(printf '%s\n' ${FILES[@]})))
 
 if [ ${#RESULT[@]} -gt 0 ]; then
