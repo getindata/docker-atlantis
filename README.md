@@ -33,7 +33,7 @@ Files found in the repo:
 - `docker-entrypoint.sh` is based on original file from atlantis repo <https://github.com/runatlantis/atlantis/blob/v0.19.8/docker-entrypoint.sh> with additional tweaks like invoking `bash` to run `atlantis` (due to `asdf` needs)
 - `check-gitlab-approvals.sh` is a script, intended to work around GitLab CE repository security limitations (CODEOWNERS, allowed approvers, etc.)
 - `approval-config-example.yaml` is a sample approver config used by `check-gitlab-approvers.sh` script
-- `pull-gitlab-variables.sh` is a script that pulls GitLab variables and create string with enviroment variables to be used by Atlantis in `multienv` step
+- `pull-gitlab-variables.sh` is a script that pulls GitLab variables and creates string with environment variables to be used by Atlantis in `multienv` step (see: https://www.runatlantis.io/docs/custom-workflows.html#multiple-environment-variables-multienv-command)
 
 ---
 
