@@ -44,7 +44,7 @@ do
     content=$(echo $v | jq -r '.value')
     MULTIENV_RESULT+="${name}=${content}",
   else
-    echo "Not allowed environment variable: $name. Skipped..."
+    >&2 echo "Not allowed environment variable: $name. Skipped..."
   fi
 done
 
@@ -59,7 +59,7 @@ do
     echo $content > $randomized_name
     MULTIENV_RESULT+="${name}=${randomized_name}",
   else
-    echo "Not allowed file variable: $name. Skipped..."
+    >&2 echo "Not allowed file variable: $name. Skipped..."
   fi
 done
 
