@@ -11,16 +11,18 @@
 # - ATLANTIS_GITLAB_TOKEN
 # - HEAD_REPO_OWNER
 # - HEAD_REPO_NAME
-# - REPO_REL_DIR - currently the script will use GitLab's environment scope (and `*`) from last nested directory matching `dev|test|prod|staging` regex
+# - REPO_REL_DIR - currently the script will use GitLab's environment scope (and `*`) from a directly nested directory under `environments/`
+#                  e.g. `environments/dev/gcp` -> `dev`
 #
-# Other than Atlantis custom workflow context environment variables there are 2 additional flags to tweak the script behaviour:
+# Other than Atlantis custom workflow context environment variables there are additional flags to tweak the script behaviour:
 # - ALLOWLIST_FILE - specifies what `file` type variables are allowed, e.g. GOOGLE_APPLICATION_CREDENTIALS
 # - ALLOWLIST_ENV_VAR - specifies what `env_var` type variables are allowed, e.g. AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
+# - FIXED_ENV_VARS - specifies environment variables that will be appended to the result string, e.g. ARM_USE_MSI=false,LOG_LEVEL=warn
 
 # Variable needed for `glab`
 export GITLAB_TOKEN=${ATLANTIS_GITLAB_TOKEN}
 
-ENV_SCOPE=$(echo $REPO_REL_DIR | sed -nE 's/.*\/(dev|test|prod|staging)\/.*/\1/p')
+ENV_SCOPE=$(echo $REPO_REL_DIR | sed -nE 's/environments\/([^/]+).*/\1/p')
 : "${ENV_SCOPE:=*}"
 
 ENCODED_REPO_NAME=$(jq -rn --arg x "${HEAD_REPO_OWNER}/${HEAD_REPO_NAME}" '$x|@uri')
@@ -30,6 +32,7 @@ MULTIENV_RESULT=""
 # default values for allowlist environment variables:
 ALLOWLIST_ENV_VAR="${ALLOWLIST_ENV_VAR:-AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY}"
 ALLOWLIST_FILE="${ALLOWLIST_FILE:-GOOGLE_APPLICATION_CREDENTIALS}"
+FIXED_ENV_VARS="${FIXED_ENV_VARS:-ARM_USE_MSI=false}"
 
 
 ALLOWLIST_ENV_VAR_ARRAY=($(printf '%s\n' ${ALLOWLIST_ENV_VAR//,/ } | sort))
@@ -73,5 +76,7 @@ for v in $FILES_TO_MASK
 do
   MULTIENV_RESULT+="${v}=",
 done
+
+MULTIENV_RESULT+="${FIXED_ENV_VARS}"
 
 echo ${MULTIENV_RESULT%,}
