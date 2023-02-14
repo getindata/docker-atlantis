@@ -27,9 +27,13 @@ ENCODED_REPO_NAME=$(jq -rn --arg x "${HEAD_REPO_OWNER}/${HEAD_REPO_NAME}" '$x|@u
 API_RESPONSE=$(glab api projects/$ENCODED_REPO_NAME/variables)
 MULTIENV_RESULT=""
 
+# default values for allowlist environment variables:
+ALLOWLIST_ENV_VAR="${ALLOWLIST_ENV_VAR:-AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY}"
+ALLOWLIST_FILE="${ALLOWLIST_FILE:-GOOGLE_APPLICATION_CREDENTIALS}"
+
 
 ALLOWLIST_ENV_VAR_ARRAY=($(printf '%s\n' ${ALLOWLIST_ENV_VAR//,/ } | sort))
-ENV_VAR_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value}" | jq -cs 'sort_by(.key) | .[]')
+ENV_VAR_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value, env: (if .environment_scope == \"$ENV_SCOPE\" then 1 else 2 end)}" | jq -cs 'sort_by(.key, .env) | unique_by(.key) | .[] | {key, value}')
 for v in $ENV_VAR_VARIABLES
 do
   name=$(echo $v | jq -r '.key')
@@ -42,7 +46,7 @@ do
 done
 
 ALLOWLIST_FILE_ARRAY=($(printf '%s\n' ${ALLOWLIST_FILE//,/ } | sort))
-FILE_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value}" | jq -cs 'sort_by(.key) | .[]')
+FILE_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value, env: (if .environment_scope == \"$ENV_SCOPE\" then 1 else 2 end)}" | jq -cs 'sort_by(.key, .env) | unique_by(.key) | .[] | {key, value}')
 for v in $FILE_VARIABLES
 do
   name=$(echo $v | jq -r '.key')
@@ -56,14 +60,14 @@ do
   fi
 done
 
-ENV_VARS=$(echo $API_RESPONSE | jq -cr "[.[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")).key] | sort | .[]")
+ENV_VARS=$(echo $API_RESPONSE | jq -cr "[.[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")).key] | sort | .[]" | uniq)
 ENV_VARS_TO_MASK=($(comm -23 <(printf '%s\n' ${ALLOWLIST_ENV_VAR_ARRAY[@]}) <(printf '%s\n' ${ENV_VARS[@]})))
 for v in $ENV_VARS_TO_MASK
 do
   MULTIENV_RESULT+="${v}=",
 done
 
-FILES=$(echo $API_RESPONSE | jq -cr "[.[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")).key] | sort | .[]")
+FILES=$(echo $API_RESPONSE | jq -cr "[.[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")).key] | sort | .[]" | uniq)
 FILES_TO_MASK=($(comm -23 <(printf '%s\n' ${ALLOWLIST_FILE_ARRAY[@]}) <(printf '%s\n' ${FILES[@]})))
 for v in $FILES_TO_MASK
 do
