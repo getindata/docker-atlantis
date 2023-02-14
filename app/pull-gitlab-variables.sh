@@ -1,12 +1,21 @@
 #!/bin/bash
-
-# arguments:
+# Script loads variables from GitLab for a specified repository and prints them on stdout as a formatted string (see:
+# https://www.runatlantis.io/docs/custom-workflows.html#multiple-environment-variables-multienv-command)
+# It's intention is to allow run multiple workloads with different set of permissions on a single Atlantis instance.
+#
+# This script makes great use of `jq` and `glab` commands and they should be installed
+# and available in $PATH prior script execution
+#
+# We assume that env variables are populated correctly (according to Atlantis documentation)
+# and script is executed in proper custom workflow context:
 # - ATLANTIS_GITLAB_TOKEN
 # - HEAD_REPO_OWNER
 # - HEAD_REPO_NAME
-# - ALLOWLIST_FILE e.g. GOOGLE_APPLICATION_CREDENTIALS
-# - ALLOWLIST_ENV_VAR e.g. AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
-# - REPO_REL_DIR e.g environments/dev/cicd/azure
+# - REPO_REL_DIR - currently the script will use GitLab's environment scope (and `*`) from last nested directory matching `dev|test|prod|staging` regex
+#
+# Other than Atlantis custom workflow context environment variables there are 2 additional flags to tweak the script behaviour:
+# - ALLOWLIST_FILE - specifies what `file` type variables are allowed, e.g. GOOGLE_APPLICATION_CREDENTIALS
+# - ALLOWLIST_ENV_VAR - specifies what `env_var` type variables are allowed, e.g. AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
 
 # Variable needed for `glab`
 export GITLAB_TOKEN=${ATLANTIS_GITLAB_TOKEN}
