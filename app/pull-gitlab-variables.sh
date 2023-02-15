@@ -37,7 +37,7 @@ FIXED_ENV_VARS="${FIXED_ENV_VARS:-ARM_USE_MSI=false}"
 
 ALLOWLIST_ENV_VAR_ARRAY=($(printf '%s\n' ${ALLOWLIST_ENV_VAR//,/ } | sort))
 ENV_VAR_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value, env: (if .environment_scope == \"$ENV_SCOPE\" then 1 else 2 end)}" | jq -cs 'sort_by(.key, .env) | unique_by(.key) | .[] | {key, value}')
-for v in $ENV_VAR_VARIABLES
+for v in ${ENV_VAR_VARIABLES[@]}
 do
   name=$(echo $v | jq -r '.key')
   if [[ " ${ALLOWLIST_ENV_VAR_ARRAY[*]} " =~ " $name " ]]; then
@@ -50,7 +50,7 @@ done
 
 ALLOWLIST_FILE_ARRAY=($(printf '%s\n' ${ALLOWLIST_FILE//,/ } | sort))
 FILE_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value, env: (if .environment_scope == \"$ENV_SCOPE\" then 1 else 2 end)}" | jq -cs 'sort_by(.key, .env) | unique_by(.key) | .[] | {key, value}')
-for v in $FILE_VARIABLES
+for v in ${FILE_VARIABLES[@]}
 do
   name=$(echo $v | jq -r '.key')
   if [[ " ${ALLOWLIST_FILE_ARRAY[*]} " =~ " $name " ]]; then
@@ -65,14 +65,14 @@ done
 
 ENV_VARS=$(echo $API_RESPONSE | jq -cr "[.[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")).key] | sort | .[]" | uniq)
 ENV_VARS_TO_MASK=($(comm -23 <(printf '%s\n' ${ALLOWLIST_ENV_VAR_ARRAY[@]}) <(printf '%s\n' ${ENV_VARS[@]})))
-for v in $ENV_VARS_TO_MASK
+for v in ${ENV_VARS_TO_MASK[@]}
 do
   MULTIENV_RESULT+="${v}=",
 done
 
 FILES=$(echo $API_RESPONSE | jq -cr "[.[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")).key] | sort | .[]" | uniq)
 FILES_TO_MASK=($(comm -23 <(printf '%s\n' ${ALLOWLIST_FILE_ARRAY[@]}) <(printf '%s\n' ${FILES[@]})))
-for v in $FILES_TO_MASK
+for v in ${FILES_TO_MASK[@]}
 do
   MULTIENV_RESULT+="${v}=",
 done
