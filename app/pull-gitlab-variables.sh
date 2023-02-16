@@ -36,8 +36,8 @@ FIXED_ENV_VARS="${FIXED_ENV_VARS:-ARM_USE_MSI=false}"
 
 
 ALLOWLIST_ENV_VAR_ARRAY=($(printf '%s\n' ${ALLOWLIST_ENV_VAR//,/ } | sort))
-ENV_VAR_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value, env: (if .environment_scope == \"$ENV_SCOPE\" then 1 else 2 end)}" | jq -cs 'sort_by(.key, .env) | unique_by(.key) | .[] | {key, value}')
-for v in ${ENV_VAR_VARIABLES[@]}
+readarray -t ENV_VAR_VARIABLES < <(echo "$API_RESPONSE" | jq -c ".[] | select(.variable_type == \"env_var\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value, env: (if .environment_scope == \"$ENV_SCOPE\" then 1 else 2 end)}" | jq -cs 'sort_by(.key, .env) | unique_by(.key) | .[] | {key, value}')
+for v in "${ENV_VAR_VARIABLES[@]}"
 do
   name=$(echo $v | jq -r '.key')
   if [[ " ${ALLOWLIST_ENV_VAR_ARRAY[*]} " =~ " $name " ]]; then
@@ -49,14 +49,14 @@ do
 done
 
 ALLOWLIST_FILE_ARRAY=($(printf '%s\n' ${ALLOWLIST_FILE//,/ } | sort))
-FILE_VARIABLES=$(echo $API_RESPONSE | jq -c ".[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value, env: (if .environment_scope == \"$ENV_SCOPE\" then 1 else 2 end)}" | jq -cs 'sort_by(.key, .env) | unique_by(.key) | .[] | {key, value}')
-for v in ${FILE_VARIABLES[@]}
+readarray -t FILE_VARIABLES < <(echo "$API_RESPONSE" | jq -c ".[] | select(.variable_type == \"file\" and (.environment_scope == \"$ENV_SCOPE\" or .environment_scope == \"*\")) | {key, value, env: (if .environment_scope == \"$ENV_SCOPE\" then 1 else 2 end)}" | jq -cs 'sort_by(.key, .env) | unique_by(.key) | .[] | {key, value}')
+for v in "${FILE_VARIABLES[@]}"
 do
   name=$(echo $v | jq -r '.key')
   if [[ " ${ALLOWLIST_FILE_ARRAY[*]} " =~ " $name " ]]; then
     randomized_name=${name}_$RANDOM
-    content=$(echo $v | jq -r '.value')
-    echo $content > $randomized_name
+    content=$(echo "$v" | jq -r '.value')
+    echo "$content" > $randomized_name
     MULTIENV_RESULT+="${name}=${randomized_name}",
   else
     >&2 echo "Not allowed file variable: $name. Skipped..."
