@@ -4,7 +4,7 @@ ARG ATLANTIS_BASE_VERSION=2023.01.31
 FROM ghcr.io/runatlantis/atlantis-base:${ATLANTIS_BASE_VERSION} AS base
 
 # Default tool versions installed in that image
-ARG ATLANTIS_VERSION=v0.21.0
+ARG ATLANTIS_VERSION=v0.22.3
 ARG ASDF_VERSION=v0.11.0
 ARG K8S_VERSION=1.25.5
 ARG HELM_VERSION=3.10.3
@@ -21,6 +21,15 @@ RUN set -ex && \
     apk update && \
     apk add bash py3-pip curl && \
     apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make curl unzip
+
+###
+### Install Checkov
+###
+RUN set -ex && \
+    pip3 install --upgrade pip && \
+    pip3 install --upgrade setuptools && \
+    pip3 install checkov && \
+    pip3 install -U checkov
 
 ###
 ### Ensure Azure cli version is present and validated
