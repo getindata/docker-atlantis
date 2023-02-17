@@ -16,6 +16,7 @@ ARG GLAB_VERSION=1.24.1
 ARG JQ_VERSION=1.6
 ARG YQ_VERSION=4.9.8
 ARG AZURE_CLI_VERSION=2.44.1
+ARG CHECKOV_VERSION=2.1.244
 
 RUN set -ex && \
     apk update && \
@@ -26,10 +27,9 @@ RUN set -ex && \
 ### Install Checkov
 ###
 RUN set -ex && \
-    pip3 install --upgrade pip && \
-    pip3 install --upgrade setuptools && \
-    pip3 install checkov && \
-    pip3 install -U checkov
+    pip install --upgrade pip && \
+    pip install --upgrade setuptools && \
+    pip install checkov==${CHECKOV_VERSION}
 
 ###
 ### Ensure Azure cli version is present and validated
