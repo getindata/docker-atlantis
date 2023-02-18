@@ -17,6 +17,7 @@ ARG JQ_VERSION=1.6
 ARG YQ_VERSION=4.9.8
 ARG AZURE_CLI_VERSION=2.44.1
 ARG CHECKOV_VERSION=2.1.244
+ARG INFRACOST_VERSION=v0.10.17
 
 RUN set -ex && \
     apk update && \
@@ -30,6 +31,13 @@ RUN set -ex && \
     pip install --upgrade pip && \
     pip install --upgrade setuptools && \
     pip install checkov==${CHECKOV_VERSION}
+
+# Download and install Infracost
+RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACOST_VERSION}/infracost-linux-amd64.tar.gz && \
+    tar xzf infracost-linux-amd64.tar.gz && \
+    mv infracost-linux-amd64 /usr/bin/infracost && \
+    chmod a+x /usr/bin/infracost && \
+    rm -rf infracost-linux-amd64*
 
 ###
 ### Ensure Azure cli version is present and validated
