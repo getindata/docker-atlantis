@@ -23,6 +23,8 @@ That custom `atlantis` docker image was created in order to install few helpful 
 - `terraform` (via asdf) - IaC automation
 - `helm` (via asdf) - k8s package manager used by `helm` terraform provider
 - `kubectl` (via asdf) - k8s CLI tool used by `kubernetes` terraform provider
+- `tflint` (via asdf) - a pluggable Terraform Linter
+- `terraform-docs` (via asdf) - terraform modules documentation in various formats
 - `jq` (via asdf) - command line JSON parser
 - `yq` (via asdf) - command like YAML parser
 - `glab` (via asdf) - GitLab CLI client
