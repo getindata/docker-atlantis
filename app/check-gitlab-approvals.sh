@@ -36,7 +36,7 @@
 if [ $# -gt 0 ]; then
   # if ARG is passed to script, use it
   APPROVAL_CONFIG_PATH=${1}
-elif [ ! -v APPROVAL_CONFIG_PATH ] || [ -z APPROVAL_CONFIG_PATH ]; then
+elif [ ! -v APPROVAL_CONFIG_PATH ] || [ -z "$APPROVAL_CONFIG_PATH" ]; then
   # if env is not set or is empty set default
   APPROVAL_CONFIG_PATH="/atlantis-data/approval-config.yaml"
 fi
@@ -52,7 +52,7 @@ declare -a APPROVERS_GITLAB
 declare -a RESULT
 
 # Get repository approvers configuration
-if [ -v APPROVAL_CONFIG ] && [ ! -z APPROVAL_CONFIG ]; then
+if [ -v APPROVAL_CONFIG ] && [ ! -z "$APPROVAL_CONFIG" ]; then
   # If env is set and not empty - read approvers configuration yaml directly from ENV
   APPROVERS_ALLOWED=($(yq --null-input eval "env(APPROVAL_CONFIG)" | yq eval ".repository.$REPO_NAME.allowed_approvers.[]" - | sort))
 elif [ -f $APPROVAL_CONFIG_PATH ]; then
