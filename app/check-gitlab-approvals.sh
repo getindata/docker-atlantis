@@ -3,7 +3,7 @@
 # free GitLab limitations (no CODEOWNERS, required approvals).
 #
 # This script makes great use of yq, jq, glab commands and they should be installed
-# and availiable in $PATH priror script execution
+# and available in $PATH prior script execution
 #
 # Approvers configuration can be set in number of ways:
 # - By pointing `APPROVAL_CONFIG_PATH` environment variable to proper APPROVAL_CONFIG yaml file
@@ -23,8 +23,10 @@
 #     allowed_approvers:
 #       - jane.doe
 #       - example_username
+# allowed_approvers:  # optional; used when "${HEAD_REPO_OWNER}/${HEAD_REPO_NAME}" doesn't exist under `repository` key
+#  - fallback.guy
 #
-# We assume that env variables are populated correctly (according to Atlantis dockumentation)
+# We assume that env variables are populated correctly (according to Atlantis documentation)
 # and script is executed in proper custom workflow context:
 # - ATLANTIS_GITLAB_TOKEN
 # - HEAD_REPO_OWNER
@@ -52,12 +54,13 @@ declare -a APPROVERS_GITLAB
 declare -a RESULT
 
 # Get repository approvers configuration
+YQ_QUERY=".repository.$REPO_NAME.allowed_approvers.[] // .allowed_approvers.[]"
 if [ -v APPROVAL_CONFIG ] && [ ! -z "$APPROVAL_CONFIG" ]; then
   # If env is set and not empty - read approvers configuration yaml directly from ENV
-  APPROVERS_ALLOWED=($(yq --null-input eval "env(APPROVAL_CONFIG)" | yq eval ".repository.$REPO_NAME.allowed_approvers.[]" - | sort))
+  APPROVERS_ALLOWED=($(yq --null-input eval "env(APPROVAL_CONFIG)" | yq eval "${YQ_QUERY}" - | sort))
 elif [ -f $APPROVAL_CONFIG_PATH ]; then
   # If file passed through APPROVAL_CONFIG_PATH env exists, try to parse it
-  APPROVERS_ALLOWED=($(yq eval ".repository.$REPO_NAME.allowed_approvers.[]" ${APPROVAL_CONFIG_PATH} | sort))
+  APPROVERS_ALLOWED=($(yq eval "${YQ_QUERY}" ${APPROVAL_CONFIG_PATH} | sort))
 else
   printf "GitLab approval configuration file not found in '%s' nor in \$APPROVAL_CONFIG - will not continue...\n" ${APPROVAL_CONFIG_PATH}
   exit 1;
