@@ -29,7 +29,8 @@ That custom `atlantis` docker image was created in order to install few helpful 
 - `yq` (via asdf) - command like YAML parser
 - `glab` (via asdf) - GitLab CLI client
 - `az-cli` (via pip) - Azure CLI
-- 
+- `Infracost` - cloud cost estimates
+
 Files found in the repo:
 - `Dockerfile` is based on an official atlantis docker file (<https://github.com/runatlantis/atlantis/blob/v0.17.3/Dockerfile>) with some additional tweaks (asdf installation and configuration)
 - `docker-entrypoint.sh` is based on original file from atlantis repo <https://github.com/runatlantis/atlantis/blob/v0.19.8/docker-entrypoint.sh> with additional tweaks like invoking `bash` to run `atlantis` (due to `asdf` needs)
