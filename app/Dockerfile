@@ -18,6 +18,8 @@ ARG YQ_VERSION=4.9.8
 ARG AZURE_CLI_VERSION=2.44.1
 ARG CHECKOV_VERSION=2.1.244
 ARG INFRACOST_VERSION=v0.10.17
+ARG TFLINT_VERSION=0.43.0
+ARG TERRAFORM_DOCS_VERSION=0.16.0
 
 RUN set -ex && \
     apk update && \
@@ -75,6 +77,8 @@ RUN gosu atlantis bash -l -c " \
     asdf plugin-add conftest && \
     asdf plugin-add glab && \
     asdf plugin-add jq && \
+    asdf plugin-add tflint && \
+    asdf plugin-add terraform-docs && \
     asdf plugin-add yq"
 # Install default versions and define them globally
 RUN gosu atlantis bash -l -c " \
@@ -86,6 +90,8 @@ RUN gosu atlantis bash -l -c " \
     asdf install conftest ${CONFTEST_VERSION} && \
     asdf install glab ${GLAB_VERSION} && \
     asdf install jq ${JQ_VERSION} && \
+    asdf install tflint ${TFLINT_VERSION} && \
+    asdf install terraform-docs ${TERRAFORM_DOCS_VERSION} && \
     asdf install yq ${YQ_VERSION} && \
     asdf global kubectl ${K8S_VERSION} && \
     asdf global helm ${HELM_VERSION} && \
@@ -94,6 +100,8 @@ RUN gosu atlantis bash -l -c " \
     asdf global conftest ${CONFTEST_VERSION} && \
     asdf global glab ${GLAB_VERSION} && \
     asdf global jq ${JQ_VERSION} && \
+    asdf global tflint ${TFLINT_VERSION} && \
+    asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
     asdf global yq ${YQ_VERSION}"
 
 # Additional cleanup

@@ -54,7 +54,7 @@ for v in "${FILE_VARIABLES[@]}"
 do
   name=$(echo $v | jq -r '.key')
   if [[ " ${ALLOWLIST_FILE_ARRAY[*]} " =~ " $name " ]]; then
-    randomized_name=${name}_$RANDOM
+    randomized_name="${PWD}/${name}_$RANDOM"
     content=$(echo "$v" | jq -r '.value')
     echo "$content" > $randomized_name
     MULTIENV_RESULT+="${name}=${randomized_name}",
