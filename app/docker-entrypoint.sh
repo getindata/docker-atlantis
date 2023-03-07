@@ -1,6 +1,10 @@
 #!/usr/bin/dumb-init /bin/sh
 set -e
 
+echo "Mounting GCS Fuse."
+gcsfuse --debug_gcs --debug_fuse $BUCKET /home/atlantis
+echo "Mounting completed."
+
 # Modified: https://github.com/hashicorp/docker-consul/blob/2c2873f9d619220d1eef0bc46ec78443f55a10b5/0.X/docker-entrypoint.sh
 
 # If the user is trying to run atlantis directly with some arguments, then
