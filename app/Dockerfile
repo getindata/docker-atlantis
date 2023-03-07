@@ -1,8 +1,17 @@
+FROM golang:alpine AS builder
+ARG GCSFUSE_VERSION=0.28.1
+ENV GO111MODULE=off
+RUN apk --update --no-cache add git fuse fuse-dev;
+RUN go get -d github.com/googlecloudplatform/gcsfuse
+RUN go install github.com/googlecloudplatform/gcsfuse/tools/build_gcsfuse
+RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp ${GCSFUSE_VERSION}
 # syntax=docker/dockerfile:1
 ARG ATLANTIS_BASE_VERSION=2023.01.31
 # The runatlantis/atlantis-base is created by docker-base/Dockerfile.
 FROM ghcr.io/runatlantis/atlantis-base:${ATLANTIS_BASE_VERSION} AS base
 
+COPY --from=builder /tmp/bin/gcsfuse /usr/local/bin/gcsfuse
+COPY --from=builder /tmp/sbin/mount.gcsfuse /usr/sbin/mount.gcsfuse
 # Default tool versions installed in that image
 ARG ATLANTIS_VERSION=v0.22.3
 ARG ASDF_VERSION=v0.11.0
@@ -24,8 +33,7 @@ ARG TERRAFORM_DOCS_VERSION=0.16.0
 RUN set -ex && \
     apk update && \
     apk add bash py3-pip curl && \
-    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make curl unzip
-
+    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make curl unzip ca-certificates fuse
 ###
 ### Install Checkov
 ###
