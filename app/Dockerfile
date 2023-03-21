@@ -8,7 +8,7 @@ RUN build_gcsfuse ${GOPATH}/src/github.com/googlecloudplatform/gcsfuse /tmp ${GC
 # syntax=docker/dockerfile:1
 ARG ATLANTIS_BASE_VERSION=2023.01.31
 # The runatlantis/atlantis-base is created by docker-base/Dockerfile.
-FROM ghcr.io/runatlantis/atlantis-base:${ATLANTIS_BASE_VERSION} AS base
+FROM ghcr.io/runatlantis/atlantis-base:2023.01.31 AS base
 
 COPY --from=builder /tmp/bin/gcsfuse /usr/local/bin/gcsfuse
 COPY --from=builder /tmp/sbin/mount.gcsfuse /usr/sbin/mount.gcsfuse
@@ -21,7 +21,6 @@ ARG TF_VERSION=1.3.5
 ARG TG_VERSION=0.42.5
 ARG TG_ATLANTIS_VERSION=1.16.0
 ARG CONFTEST_VERSION=v0.35.0
-ARG GLAB_VERSION=1.24.1
 ARG JQ_VERSION=1.6
 ARG YQ_VERSION=4.9.8
 ARG AZURE_CLI_VERSION=2.44.1
@@ -96,7 +95,6 @@ RUN gosu atlantis bash -l -c " \
     asdf install terraform ${TF_VERSION} && \
     asdf install terragrunt ${TG_VERSION} && \
     asdf install conftest ${CONFTEST_VERSION} && \
-    asdf install glab ${GLAB_VERSION} && \
     asdf install jq ${JQ_VERSION} && \
     asdf install tflint ${TFLINT_VERSION} && \
     asdf install terraform-docs ${TERRAFORM_DOCS_VERSION} && \
@@ -106,7 +104,6 @@ RUN gosu atlantis bash -l -c " \
     asdf global terraform ${TF_VERSION} && \
     asdf global terragrunt ${TG_VERSION} && \
     asdf global conftest ${CONFTEST_VERSION} && \
-    asdf global glab ${GLAB_VERSION} && \
     asdf global jq ${JQ_VERSION} && \
     asdf global tflint ${TFLINT_VERSION} && \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
@@ -119,12 +116,13 @@ RUN rm -rf /tmp/*
 RUN sed -i s#atlantis:/sbin/nologin#atlantis:/bin/bash#g /etc/passwd
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY check-gitlab-approvals.sh /usr/local/bin/check-gitlab-approvals.sh
-COPY pull-gitlab-variables.sh /usr/local/bin/pull-gitlab-variables.sh
+COPY config.yaml /home/atlantis/config.yaml
+# COPY check-gitlab-approvals.sh /usr/local/bin/check-gitlab-approvals.sh
+# COPY pull-gitlab-variables.sh /usr/local/bin/pull-gitlab-variables.sh
 
-RUN chmod a+x /usr/local/bin/docker-entrypoint.sh && \
-    chmod a+x /usr/local/bin/check-gitlab-approvals.sh && \
-    chmod a+x /usr/local/bin/pull-gitlab-variables.sh
+RUN chmod a+x /usr/local/bin/docker-entrypoint.sh
+    # chmod a+x /usr/local/bin/check-gitlab-approvals.sh && \
+    # chmod a+x /usr/local/bin/pull-gitlab-variables.sh
 
 USER atlantis
 

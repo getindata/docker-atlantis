@@ -1,0 +1,36 @@
+repos:
+  - allow_custom_workflows: true
+    allowed_workflows:
+      - terragrunt-my-basic
+    apply_requirements:
+      - approved
+      - mergeable
+    allowed_overrides:
+      - workflow
+      - delete_source_branch_on_merge
+    branch: "/main/"
+    id: "gitlab.com/getindata/devops/playground/infracost"
+    pre_workflow_hooks:
+      - run: "terragrunt-atlantis-config generate --output \"atlantis.yaml\" --filter \"environments/**\" --parallel=false --autoplan=true --automerge=false"
+      - run: "rm -rf /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM"
+      - run: "mkdir -p /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM"
+    workflow: "terragrunt-my-basic"
+    post_workflow_hooks:
+      - run: "infracost comment gitlab --repo $BASE_REPO_OWNER/$BASE_REPO_NAME --merge-request $PULL_NUM --path /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM/'*'-infracost.json --gitlab-token $GITLAB_TOKEN --behavior new"
+workflows:
+  terragrunt-my-basic:
+    apply:
+      steps:
+        - run: "terragrunt apply -no-color -input=false -compact-warnings -auto-approve $PLANFILE"
+    plan:
+      steps:
+        - run: "asdf install"
+        - env:
+            name: INFRACOST_OUTPUT
+            command: 'echo "/tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM/$WORKSPACE-${REPO_REL_DIR//\//-}-infracost.json"'
+        - run: "terragrunt fmt -no-color -check=true -diff=true -write=false"
+        - run: "terragrunt hclfmt --terragrunt-check"
+        - run: "terragrunt plan -no-color -out $PLANFILE"
+        - run: "terragrunt show -json $PLANFILE > tgplan.json"
+        - run: "checkov -f tgplan.json -o github_failed_only --soft-fail"
+        - run: "infracost breakdown --path=tgplan.json --format=json --log-level=info --out-file=$INFRACOST_OUTPUT --project-name=$REPO_REL_DIR"
