@@ -24,7 +24,7 @@
 export GITLAB_TOKEN=${ATLANTIS_GITLAB_TOKEN}
 if [ -v ATLANTIS_GITLAB_HOSTNAME ] && [ ! -z "$ATLANTIS_GITLAB_HOSTNAME" ]; then
   # if env set and not empty set GITLAB_HOST
-  GITLAB_HOST="https://${ATLANTIS_GITLAB_HOSTNAME}"
+  export GITLAB_HOST="https://${ATLANTIS_GITLAB_HOSTNAME}"
 fi
 
 ENV_SCOPE=$(echo $REPO_REL_DIR | sed -nE 's/environments\/([^/]+).*/\1/p')
