@@ -29,6 +29,7 @@
 # We assume that env variables are populated correctly (according to Atlantis documentation)
 # and script is executed in proper custom workflow context:
 # - ATLANTIS_GITLAB_TOKEN
+# - ATLANTIS_GITLAB_HOSTNAME (if private GitLab is used)
 # - HEAD_REPO_OWNER
 # - HEAD_REPO_NAME
 # - PULL_NUM
@@ -45,6 +46,10 @@ fi
 
 # Variable needed for `glab`
 export GITLAB_TOKEN=${ATLANTIS_GITLAB_TOKEN}
+if [ -v ATLANTIS_GITLAB_HOSTNAME ] && [ ! -z "$ATLANTIS_GITLAB_HOSTNAME" ]; then
+  # if env set and not empty set GITLAB_HOST
+  export GITLAB_HOST="https://${ATLANTIS_GITLAB_HOSTNAME}"
+fi
 
 REPO_NAME="${HEAD_REPO_OWNER}/${HEAD_REPO_NAME}"
 

@@ -9,6 +9,7 @@
 # We assume that env variables are populated correctly (according to Atlantis documentation)
 # and script is executed in proper custom workflow context:
 # - ATLANTIS_GITLAB_TOKEN
+# - ATLANTIS_GITLAB_HOSTNAME (if private GitLab is used)
 # - HEAD_REPO_OWNER
 # - HEAD_REPO_NAME
 # - REPO_REL_DIR - currently the script will use GitLab's environment scope (and `*`) from a directly nested directory under `environments/`
@@ -21,6 +22,10 @@
 
 # Variable needed for `glab`
 export GITLAB_TOKEN=${ATLANTIS_GITLAB_TOKEN}
+if [ -v ATLANTIS_GITLAB_HOSTNAME ] && [ ! -z "$ATLANTIS_GITLAB_HOSTNAME" ]; then
+  # if env set and not empty set GITLAB_HOST
+  export GITLAB_HOST="https://${ATLANTIS_GITLAB_HOSTNAME}"
+fi
 
 ENV_SCOPE=$(echo $REPO_REL_DIR | sed -nE 's/environments\/([^/]+).*/\1/p')
 : "${ENV_SCOPE:=*}"
