@@ -106,6 +106,8 @@ RUN gosu atlantis bash -l -c " \
 
 # Additional cleanup
 RUN rm -rf /tmp/*
+# Add alias
+RUN alias jq=gojq
 
 # Set atlantis login shell to bash
 RUN sed -i s#atlantis:/sbin/nologin#atlantis:/bin/bash#g /etc/passwd
