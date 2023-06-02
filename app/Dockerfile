@@ -121,7 +121,6 @@ RUN chmod a+x /usr/local/bin/docker-entrypoint.sh && \
     chmod a+x /usr/local/bin/pull-gitlab-variables.sh
 
 USER atlantis
-RUN echo 'alias jq=gojq' >> ~/.bashrc
 # Add GitHub and GitLab to known keys file for safe SSH connections
 RUN mkdir -p /home/atlantis/.ssh && \
     chmod 0700 /home/atlantis/.ssh && \
