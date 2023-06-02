@@ -13,7 +13,7 @@ ARG TG_VERSION=0.45.0
 ARG TG_ATLANTIS_VERSION=1.16.0
 ARG CONFTEST_VERSION=v0.35.0
 ARG GLAB_VERSION=1.26.0
-ARG JQ_VERSION=1.6
+ARG GOJQ_VERSION=0.12.13
 ARG YQ_VERSION=4.9.8
 ARG AZURE_CLI_VERSION=2.46.0
 ARG CHECKOV_VERSION=2.1.244
@@ -76,7 +76,7 @@ RUN gosu atlantis bash -l -c " \
     asdf plugin-add terraform && \
     asdf plugin-add conftest && \
     asdf plugin-add glab && \
-    asdf plugin-add jq && \
+    asdf plugin-add gojq && \
     asdf plugin-add tflint && \
     asdf plugin-add terraform-docs && \
     asdf plugin-add yq"
@@ -89,7 +89,7 @@ RUN gosu atlantis bash -l -c " \
     asdf install terragrunt ${TG_VERSION} && \
     asdf install conftest ${CONFTEST_VERSION} && \
     asdf install glab ${GLAB_VERSION} && \
-    asdf install jq ${JQ_VERSION} && \
+    asdf install gojq ${GOJQ_VERSION} && \
     asdf install tflint ${TFLINT_VERSION} && \
     asdf install terraform-docs ${TERRAFORM_DOCS_VERSION} && \
     asdf install yq ${YQ_VERSION} && \
@@ -99,7 +99,7 @@ RUN gosu atlantis bash -l -c " \
     asdf global terragrunt ${TG_VERSION} && \
     asdf global conftest ${CONFTEST_VERSION} && \
     asdf global glab ${GLAB_VERSION} && \
-    asdf global jq ${JQ_VERSION} && \
+    asdf global gojq ${GOJQ_VERSION} && \
     asdf global tflint ${TFLINT_VERSION} && \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
     asdf global yq ${YQ_VERSION}"
