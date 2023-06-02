@@ -107,7 +107,7 @@ RUN gosu atlantis bash -l -c " \
 # Additional cleanup
 RUN rm -rf /tmp/*
 # Add alias
-RUN alias jq=gojq
+RUN echo 'alias jq=gojq' >> ~/.bashrc
 
 # Set atlantis login shell to bash
 RUN sed -i s#atlantis:/sbin/nologin#atlantis:/bin/bash#g /etc/passwd
@@ -121,7 +121,7 @@ RUN chmod a+x /usr/local/bin/docker-entrypoint.sh && \
     chmod a+x /usr/local/bin/pull-gitlab-variables.sh
 
 USER atlantis
-
+RUN echo 'alias jq=gojq' >> ~/.bashrc
 # Add GitHub and GitLab to known keys file for safe SSH connections
 RUN mkdir -p /home/atlantis/.ssh && \
     chmod 0700 /home/atlantis/.ssh && \
