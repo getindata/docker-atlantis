@@ -49,7 +49,8 @@ do
     content=$(echo $v | jq -r '.value')
     MULTIENV_RESULT+="${name}=${content}",
   else
-    >&2 echo "Not allowed environment variable: $name. Skipped..."
+# TODO better logging
+#    >&2 echo "Not allowed environment variable: $name. Skipped..."
   fi
 done
 
