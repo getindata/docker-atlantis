@@ -65,7 +65,7 @@ do
     echo "$content" > $randomized_name
     MULTIENV_RESULT+="${name}=${randomized_name}",
   else
-    >&2 echo "Not allowed file variable: $name. Skipped..."
+#    >&2 echo "Not allowed file variable: $name. Skipped..."
   fi
 done
 
