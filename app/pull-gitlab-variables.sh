@@ -49,8 +49,9 @@ do
     content=$(echo $v | jq -r '.value')
     MULTIENV_RESULT+="${name}=${content}",
   else
-# TODO better logging
-#    >&2 echo "Not allowed environment variable: $name. Skipped..."
+    :
+    # TODO: Atlantis couldn't handle anything printed on stderr - only dynamic variables should be outputted
+    # >&2 echo "Not allowed environment variable: $name. Skipped..."
   fi
 done
 
@@ -65,7 +66,9 @@ do
     echo "$content" > $randomized_name
     MULTIENV_RESULT+="${name}=${randomized_name}",
   else
-#    >&2 echo "Not allowed file variable: $name. Skipped..."
+    :
+    # TODO: Atlantis couldn't handle anything printed on stderr - only dynamic variables should be outputted
+    # >&2 echo "Not allowed file variable: $name. Skipped..."
   fi
 done
 
