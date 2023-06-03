@@ -106,8 +106,8 @@ RUN gosu atlantis bash -l -c " \
 
 # Additional cleanup
 RUN rm -rf /tmp/*
-# Add alias
-RUN echo 'alias jq=gojq' >> ~/.bashrc
+# Add 'alias' `jq` to `gojq`
+RUN echo -e '#!/bin/bash \nexec gojq "$@"' > /usr/local/bin/jq && chmod +x /usr/local/bin/jq
 
 # Set atlantis login shell to bash
 RUN sed -i s#atlantis:/sbin/nologin#atlantis:/bin/bash#g /etc/passwd
