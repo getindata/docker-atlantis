@@ -20,7 +20,7 @@ ARG CHECKOV_VERSION=2.1.244
 ARG INFRACOST_VERSION=v0.10.18
 ARG TFLINT_VERSION=0.45.0
 ARG TERRAFORM_DOCS_VERSION=0.16.0
-ARG AWS_CLI_VERSION=2.12.6
+ARG AWS_CLI_VERSION=1.28.0
 
 RUN set -ex && \
     apk update && \
@@ -48,6 +48,13 @@ RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACO
 RUN set -eux \
     && pip install azure-cli==${AZURE_CLI_VERSION} \
     && az --version
+
+###
+### Ensure AWS cli version is present and validated
+###
+RUN set -eux \
+    && pip install awscli==${AWS_CLI_VERSION} \
+    && aws --version
 
 # Download and install Atlantis
 RUN curl -LOs https://github.com/runatlantis/atlantis/releases/download/${ATLANTIS_VERSION}/atlantis_linux_amd64.zip && \
@@ -80,8 +87,7 @@ RUN gosu atlantis bash -l -c " \
     asdf plugin-add gojq && \
     asdf plugin-add tflint && \
     asdf plugin-add terraform-docs && \
-    asdf plugin-add yq && \
-    asdf plugin add awscli"
+    asdf plugin-add yq"
 # Install default versions and define them globally
 RUN gosu atlantis bash -l -c " \
     cd /home/atlantis/ && \
@@ -95,7 +101,6 @@ RUN gosu atlantis bash -l -c " \
     asdf install tflint ${TFLINT_VERSION} && \
     asdf install terraform-docs ${TERRAFORM_DOCS_VERSION} && \
     asdf install yq ${YQ_VERSION} && \
-    asdf install awscli ${AWS_CLI_VERSION} && \
     asdf global kubectl ${K8S_VERSION} && \
     asdf global helm ${HELM_VERSION} && \
     asdf global terraform ${TF_VERSION} && \
@@ -105,8 +110,7 @@ RUN gosu atlantis bash -l -c " \
     asdf global gojq ${GOJQ_VERSION} && \
     asdf global tflint ${TFLINT_VERSION} && \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
-    asdf global yq ${YQ_VERSION} && \
-    asdf global awscli ${AWS_CLI_VERSION}"
+    asdf global yq ${YQ_VERSION}"
 
 # Additional cleanup
 RUN rm -rf /tmp/*

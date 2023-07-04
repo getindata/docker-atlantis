@@ -30,7 +30,7 @@ That custom `atlantis` docker image was created in order to install few helpful 
 - `glab` (via asdf) - GitLab CLI client
 - `az-cli` (via pip) - Azure CLI
 - `Infracost` - cloud cost estimates
-- `aws-cli` (via asdf) - AWS CLI
+- `aws-cli` (via pip) - AWS CLI
 
 Files found in the repo:
 - `Dockerfile` is based on an official atlantis docker file (<https://github.com/runatlantis/atlantis/blob/v0.17.3/Dockerfile>) with some additional tweaks (asdf installation and configuration)
