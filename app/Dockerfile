@@ -20,7 +20,7 @@ ARG CHECKOV_VERSION=2.1.244
 ARG INFRACOST_VERSION=v0.10.18
 ARG TFLINT_VERSION=0.45.0
 ARG TERRAFORM_DOCS_VERSION=0.16.0
-ARG AWS_CLI_VERSION=2.12.6
+ARG AWS_CLI_VERSION=2.12.6-r0
 
 RUN set -ex && \
     apk update && \
@@ -53,7 +53,7 @@ RUN set -eux \
 ### Ensure AWS cli version is present and validated
 ###
 RUN set -eux \
-    && apk add --no-cache aws-cli==${AWS_CLI_VERSION} \
+    && apk add --no-cache aws-cli=${AWS_CLI_VERSION} \
     && aws --version
 
 # Download and install Atlantis
