@@ -53,7 +53,7 @@ RUN set -eux \
 ### Ensure AWS cli version is present and validated
 ###
 RUN set -eux \
-    && apk add --no-cache aws-cli-${AWS_CLI_VERSION} \
+    && apk add --no-cache aws-cli \
     && aws --version
 
 # Download and install Atlantis
