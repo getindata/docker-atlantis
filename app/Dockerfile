@@ -24,7 +24,7 @@ ARG TERRAFORM_DOCS_VERSION=0.16.0
 RUN set -ex && \
     apk update && \
     apk add bash py3-pip curl && \
-    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make curl unzip
+    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make curl unzip aws-cli
 
 ###
 ### Install Checkov
@@ -47,13 +47,6 @@ RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACO
 RUN set -eux \
     && pip install azure-cli==${AZURE_CLI_VERSION} \
     && az --version
-
-###
-### Ensure AWS cli version is present and validated
-###
-RUN set -eux \
-    && apk add --no-cache aws-cli \
-    && aws --version
 
 # Download and install Atlantis
 RUN curl -LOs https://github.com/runatlantis/atlantis/releases/download/${ATLANTIS_VERSION}/atlantis_linux_amd64.zip && \
