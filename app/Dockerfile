@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG ATLANTIS_BASE_VERSION=2023.03.01-alpine
+ARG ATLANTIS_BASE_VERSION=2023.03.30
 # The runatlantis/atlantis-base is created by docker-base/Dockerfile.
 FROM ghcr.io/runatlantis/atlantis-base:${ATLANTIS_BASE_VERSION} AS base
 
