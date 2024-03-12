@@ -28,8 +28,8 @@ RUN set -ex && \
 ### Install Checkov
 ###
 RUN set -ex && \
-    pip install --upgrade pip && \
-    pip install --upgrade setuptools && \
+    pip install --upgrade pip --break-system-packages && \
+    pip install --upgrade setuptools --break-system-packages && \
     pip install checkov --break-system-packages
 
 # Download and install Infracost
@@ -43,7 +43,7 @@ RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACO
 ### Ensure Azure cli version is present and validated
 ###
 RUN set -eux \
-    && pip install azure-cli==${AZURE_CLI_VERSION} \
+    && pip install azure-cli==${AZURE_CLI_VERSION} --break-system-packages \
     && az --version
 
 # # Download and install Atlantis
