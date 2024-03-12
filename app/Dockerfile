@@ -30,7 +30,7 @@ RUN set -ex && \
 RUN set -ex && \
     pip install --upgrade pip --break-system-packages && \
     pip install --upgrade setuptools --break-system-packages && \
-    pip install checkov --break-system-packages
+    pip install checkov==${CHECKOV_VERSION} --break-system-packages
 
 # Download and install Infracost
 RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACOST_VERSION}/infracost-linux-amd64.tar.gz && \
@@ -58,14 +58,13 @@ RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/release
 USER atlantis
 
 # Install asdf for the atlantis user
+# RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
+#     echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
+#     echo 'export PATH="$HOME/.asdf/bin:$HOME/.asdf/shims:$PATH"' >> /home/atlantis/.profile
 RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
     echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
-    echo 'export PATH="$HOME/.asdf/bin:$HOME/.asdf/shims:$PATH"' >> /home/atlantis/.profile
-# RUN bash -l -c " \
-#     git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
-#     echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
-#     chown atlantis.atlantis /home/atlantis/.profile && \
-#     chmod u+rw /home/atlantis/.profile"
+    chown atlantis.atlantis /home/atlantis/.profile && \
+    chmod u+rw /home/atlantis/.profile
 
 # Install all needed plugins
 RUN bash -l -c " \
