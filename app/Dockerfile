@@ -101,6 +101,7 @@ RUN bash -l -c " \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
     asdf global yq ${YQ_VERSION}"
 
+USER root
 # Additional cleanup
 RUN rm -rf /tmp/*
 # Add 'alias' `jq` to `gojq`
