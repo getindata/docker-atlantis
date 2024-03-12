@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1
 FROM ghcr.io/runatlantis/atlantis:v0.27.2 AS base
 
+USER root
 # Default tool versions installed in that image
-# ARG ATLANTIS_VERSION=v0.27.2
+
 ARG ASDF_VERSION=v0.14.0
 ARG K8S_VERSION=1.29.2
 ARG HELM_VERSION=3.14.2
