@@ -16,7 +16,7 @@ ARG GLAB_VERSION=1.37.0
 ARG GOJQ_VERSION=0.12.14
 ARG YQ_VERSION=4.42.1
 ARG AZURE_CLI_VERSION=2.58.0
-ARG CHECKOV_VERSION=3.2.34
+ARG CHECKOV_VERSION=2.1.244
 ARG INFRACOST_VERSION=v0.10.34
 ARG TFLINT_VERSION=0.49.0
 ARG TERRAFORM_DOCS_VERSION=0.17.0
@@ -32,7 +32,7 @@ RUN set -ex && \
 RUN set -ex && \
     pip install --upgrade pip && \
     pip install --upgrade setuptools && \
-    pip install checkov
+    pip install checkov==${CHECKOV_VERSION}
 
 # Download and install Infracost
 RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACOST_VERSION}/infracost-linux-amd64.tar.gz && \
