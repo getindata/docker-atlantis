@@ -30,7 +30,7 @@ RUN set -ex && \
 RUN set -ex && \
     pip install --upgrade pip && \
     pip install --upgrade setuptools && \
-    pip install checkov==${CHECKOV_VERSION}
+    pip install checkov
 
 # Download and install Infracost
 RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACOST_VERSION}/infracost-linux-amd64.tar.gz && \
