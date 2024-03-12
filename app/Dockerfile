@@ -57,6 +57,7 @@ RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/release
 # Download and install asdf, create .profile and source asdf inside
 RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
     echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
+    echo 'export PATH="$HOME/.asdf/bin:$HOME/.asdf/shims:$PATH"' >> /home/atlantis/.profile && \
     chown atlantis.atlantis /home/atlantis/.profile && \
     chmod u+rw /home/atlantis/.profile
 
