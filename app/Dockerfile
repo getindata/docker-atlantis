@@ -55,13 +55,13 @@ RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/release
     rm -rf terragrunt-atlantis-config_${TG_ATLANTIS_VERSION}_linux_amd64*
 
 # Download and install asdf, create .profile and source asdf inside
-USER atlantis
 RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
     echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
     chown atlantis.atlantis /home/atlantis/.profile && \
     chmod u+rw /home/atlantis/.profile
 
 # Install all needed plugins
+USER atlantis
 RUN asdf plugin-add kubectl && \
     asdf plugin-add helm && \
     asdf plugin-add terragrunt && \
