@@ -26,7 +26,7 @@ RUN set -ex && \
 
 ###
 ### Install Checkov
-###
+### wtih --break-system-packages due to https://peps.python.org/pep-0668/
 RUN set -ex && \
     pip install --upgrade pip --break-system-packages && \
     pip install --upgrade setuptools --break-system-packages && \
@@ -41,16 +41,11 @@ RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACO
 
 ###
 ### Ensure Azure cli version is present and validated
-###
+### wtih --break-system-packages due to https://peps.python.org/pep-0668/
 RUN set -eux \
     && pip install azure-cli==${AZURE_CLI_VERSION} --break-system-packages \
     && az --version
 
-# # Download and install Atlantis
-# RUN curl -LOs https://github.com/runatlantis/atlantis/releases/download/${ATLANTIS_VERSION}/atlantis_linux_amd64.zip && \
-#     unzip atlantis_linux_amd64.zip -d /usr/bin && \
-#     chmod a+x /usr/bin/atlantis && \
-#     rm atlantis_linux_amd64.zip
 
 # Download and install terragrunt-atlantis-config
 RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/releases/download/v${TG_ATLANTIS_VERSION}/terragrunt-atlantis-config_${TG_ATLANTIS_VERSION}_linux_amd64.tar.gz && \
@@ -60,15 +55,14 @@ RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/release
     rm -rf terragrunt-atlantis-config_${TG_ATLANTIS_VERSION}_linux_amd64*
 
 # Download and install asdf, create .profile and source asdf inside
-RUN gosu atlantis bash -l -c " \
-    git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
+USER atlantis
+RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
     echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
     chown atlantis.atlantis /home/atlantis/.profile && \
-    chmod u+rw /home/atlantis/.profile"
+    chmod u+rw /home/atlantis/.profile
 
 # Install all needed plugins
-RUN gosu atlantis bash -l -c " \
-    asdf plugin-add kubectl && \
+RUN asdf plugin-add kubectl && \
     asdf plugin-add helm && \
     asdf plugin-add terragrunt && \
     asdf plugin-add terraform && \
@@ -77,10 +71,9 @@ RUN gosu atlantis bash -l -c " \
     asdf plugin-add gojq && \
     asdf plugin-add tflint && \
     asdf plugin-add terraform-docs && \
-    asdf plugin-add yq"
+    asdf plugin-add yq
 # Install default versions and define them globally
-RUN gosu atlantis bash -l -c " \
-    cd /home/atlantis/ && \
+RUN cd /home/atlantis/ && \
     asdf install kubectl ${K8S_VERSION} && \
     asdf install helm ${HELM_VERSION} && \
     asdf install terragrunt ${TG_VERSION} && \
@@ -98,7 +91,7 @@ RUN gosu atlantis bash -l -c " \
     asdf global gojq ${GOJQ_VERSION} && \
     asdf global tflint ${TFLINT_VERSION} && \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
-    asdf global yq ${YQ_VERSION}"
+    asdf global yq ${YQ_VERSION}
 
 # Additional cleanup
 RUN rm -rf /tmp/*
