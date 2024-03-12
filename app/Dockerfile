@@ -106,12 +106,10 @@ RUN echo -e '#!/bin/bash \nexec gojq "$@"' > /usr/local/bin/jq && chmod +x /usr/
 # Set atlantis login shell to bash
 RUN sed -i s#atlantis:/sbin/nologin#atlantis:/bin/bash#g /etc/passwd
 
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY check-gitlab-approvals.sh /usr/local/bin/check-gitlab-approvals.sh
 COPY pull-gitlab-variables.sh /usr/local/bin/pull-gitlab-variables.sh
 
-RUN chmod a+x /usr/local/bin/docker-entrypoint.sh && \
-    chmod a+x /usr/local/bin/check-gitlab-approvals.sh && \
+RUN chmod a+x /usr/local/bin/check-gitlab-approvals.sh && \
     chmod a+x /usr/local/bin/pull-gitlab-variables.sh
 
 USER atlantis
