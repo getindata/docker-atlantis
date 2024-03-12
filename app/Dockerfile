@@ -1,14 +1,11 @@
 # syntax=docker/dockerfile:1
-ARG ATLANTIS_BASE_VERSION=2023.03.30
-# The runatlantis/atlantis-base is created by docker-base/Dockerfile.
-FROM ghcr.io/runatlantis/atlantis-base:${ATLANTIS_BASE_VERSION} AS base
+FROM ghcr.io/runatlantis/atlantis:v0.27.2 AS base
 
 # Default tool versions installed in that image
-ARG ATLANTIS_VERSION=v0.27.2
+# ARG ATLANTIS_VERSION=v0.27.2
 ARG ASDF_VERSION=v0.14.0
 ARG K8S_VERSION=1.29.2
 ARG HELM_VERSION=3.14.2
-ARG TF_VERSION=1.7.4
 ARG TG_VERSION=0.55.13
 ARG TG_ATLANTIS_VERSION=1.17.4
 ARG CONFTEST_VERSION=0.50.0
@@ -48,11 +45,11 @@ RUN set -eux \
     && pip install azure-cli==${AZURE_CLI_VERSION} \
     && az --version
 
-# Download and install Atlantis
-RUN curl -LOs https://github.com/runatlantis/atlantis/releases/download/${ATLANTIS_VERSION}/atlantis_linux_amd64.zip && \
-    unzip atlantis_linux_amd64.zip -d /usr/bin && \
-    chmod a+x /usr/bin/atlantis && \
-    rm atlantis_linux_amd64.zip
+# # Download and install Atlantis
+# RUN curl -LOs https://github.com/runatlantis/atlantis/releases/download/${ATLANTIS_VERSION}/atlantis_linux_amd64.zip && \
+#     unzip atlantis_linux_amd64.zip -d /usr/bin && \
+#     chmod a+x /usr/bin/atlantis && \
+#     rm atlantis_linux_amd64.zip
 
 # Download and install terragrunt-atlantis-config
 RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/releases/download/v${TG_ATLANTIS_VERSION}/terragrunt-atlantis-config_${TG_ATLANTIS_VERSION}_linux_amd64.tar.gz && \
@@ -85,7 +82,6 @@ RUN gosu atlantis bash -l -c " \
     cd /home/atlantis/ && \
     asdf install kubectl ${K8S_VERSION} && \
     asdf install helm ${HELM_VERSION} && \
-    asdf install terraform ${TF_VERSION} && \
     asdf install terragrunt ${TG_VERSION} && \
     asdf install conftest ${CONFTEST_VERSION} && \
     asdf install glab ${GLAB_VERSION} && \
@@ -95,7 +91,6 @@ RUN gosu atlantis bash -l -c " \
     asdf install yq ${YQ_VERSION} && \
     asdf global kubectl ${K8S_VERSION} && \
     asdf global helm ${HELM_VERSION} && \
-    asdf global terraform ${TF_VERSION} && \
     asdf global terragrunt ${TG_VERSION} && \
     asdf global conftest ${CONFTEST_VERSION} && \
     asdf global glab ${GLAB_VERSION} && \
