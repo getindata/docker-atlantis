@@ -61,7 +61,6 @@ RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf -
     chmod u+rw /home/atlantis/.profile
 
 # Install all needed plugins
-USER atlantis
 RUN asdf plugin-add kubectl && \
     asdf plugin-add helm && \
     asdf plugin-add terragrunt && \
