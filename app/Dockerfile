@@ -56,19 +56,14 @@ RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/release
 
 # Download and install asdf, create .profile and source asdf inside
 USER atlantis
-
 # Install asdf for the atlantis user
-# RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
-#     echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
-#     echo 'export PATH="$HOME/.asdf/bin:$HOME/.asdf/shims:$PATH"' >> /home/atlantis/.profile
 RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
     echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
     chown atlantis.atlantis /home/atlantis/.profile && \
     chmod u+rw /home/atlantis/.profile
 
 # Install all needed plugins
-RUN bash -l -c " \
-    asdf plugin-add kubectl && \
+RUN asdf plugin-add kubectl && \
     asdf plugin-add helm && \
     asdf plugin-add terragrunt && \
     asdf plugin-add terraform && \
@@ -77,10 +72,9 @@ RUN bash -l -c " \
     asdf plugin-add gojq && \
     asdf plugin-add tflint && \
     asdf plugin-add terraform-docs && \
-    asdf plugin-add yq"
+    asdf plugin-add yq
 # Install default versions and define them globally
-RUN bash -l -c " \
-    cd /home/atlantis/ && \
+RUN cd /home/atlantis/ && \
     asdf install kubectl ${K8S_VERSION} && \
     asdf install helm ${HELM_VERSION} && \
     asdf install terragrunt ${TG_VERSION} && \
@@ -98,7 +92,7 @@ RUN bash -l -c " \
     asdf global gojq ${GOJQ_VERSION} && \
     asdf global tflint ${TFLINT_VERSION} && \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
-    asdf global yq ${YQ_VERSION}"
+    asdf global yq ${YQ_VERSION}
 
 USER root
 # Additional cleanup
