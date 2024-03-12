@@ -63,7 +63,8 @@ RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf -
     chmod u+rw /home/atlantis/.profile
 
 # Install all needed plugins
-RUN asdf plugin-add kubectl && \
+RUN bash -l -c " \
+    asdf plugin-add kubectl && \
     asdf plugin-add helm && \
     asdf plugin-add terragrunt && \
     asdf plugin-add terraform && \
@@ -72,9 +73,11 @@ RUN asdf plugin-add kubectl && \
     asdf plugin-add gojq && \
     asdf plugin-add tflint && \
     asdf plugin-add terraform-docs && \
-    asdf plugin-add yq
+    asdf plugin-add yq"
+
 # Install default versions and define them globally
-RUN cd /home/atlantis/ && \
+RUN bash -l -c " \
+    cd /home/atlantis/ && \
     asdf install kubectl ${K8S_VERSION} && \
     asdf install helm ${HELM_VERSION} && \
     asdf install terragrunt ${TG_VERSION} && \
@@ -92,7 +95,7 @@ RUN cd /home/atlantis/ && \
     asdf global gojq ${GOJQ_VERSION} && \
     asdf global tflint ${TFLINT_VERSION} && \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
-    asdf global yq ${YQ_VERSION}
+    asdf global yq ${YQ_VERSION}"
 
 USER root
 # Additional cleanup
