@@ -9,7 +9,6 @@ FROM ghcr.io/runatlantis/atlantis:${ATLANTIS_VERSION} AS base
 ARG ASDF_VERSION=v0.14.0
 ARG K8S_VERSION=1.29.2
 ARG HELM_VERSION=3.14.2
-ARG TF_VERSION=1.5.7
 ARG TG_VERSION=0.55.13
 ARG TG_ATLANTIS_VERSION=1.17.4
 ARG CONFTEST_VERSION=0.50.0
@@ -70,7 +69,6 @@ RUN bash -l -c " \
     asdf plugin-add kubectl && \
     asdf plugin-add helm && \
     asdf plugin-add terragrunt && \
-    asdf plugin-add terraform && \
     asdf plugin-add conftest && \
     asdf plugin-add glab && \
     asdf plugin-add gojq && \
@@ -83,7 +81,6 @@ RUN bash -l -c " \
     cd /home/atlantis/ && \
     asdf install kubectl ${K8S_VERSION} && \
     asdf install helm ${HELM_VERSION} && \
-    asdf install terraform ${TF_VERSION} && \
     asdf install terragrunt ${TG_VERSION} && \
     asdf install conftest ${CONFTEST_VERSION} && \
     asdf install glab ${GLAB_VERSION} && \
@@ -93,7 +90,6 @@ RUN bash -l -c " \
     asdf install yq ${YQ_VERSION} && \
     asdf global kubectl ${K8S_VERSION} && \
     asdf global helm ${HELM_VERSION} && \
-    asdf global terraform ${TF_VERSION} && \
     asdf global terragrunt ${TG_VERSION} && \
     asdf global conftest ${CONFTEST_VERSION} && \
     asdf global glab ${GLAB_VERSION} && \
@@ -103,10 +99,8 @@ RUN bash -l -c " \
     asdf global yq ${YQ_VERSION}"
 
 USER root
-# Additional cleanup for multiple existing terraform versions
-RUN rm -f /usr/local/bin/terraform* && \
-    rm -rf /tmp/*
-
+# Additional cleanup
+RUN rm -rf /tmp/*
 # Add 'alias' `jq` to `gojq`
 RUN echo -e '#!/bin/bash \nexec gojq "$@"' > /usr/local/bin/jq && chmod +x /usr/local/bin/jq
 
