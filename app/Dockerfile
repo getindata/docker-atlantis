@@ -1,12 +1,15 @@
 # syntax=docker/dockerfile:1
-FROM ghcr.io/runatlantis/atlantis:v0.27.2 AS base
 
-USER root
+ARG ATLANTIS_VERSION=v0.27.2
+
+FROM ghcr.io/runatlantis/atlantis:${ATLANTIS_VERSION} AS base
+
 # Default tool versions installed in that image
 
 ARG ASDF_VERSION=v0.14.0
 ARG K8S_VERSION=1.29.2
 ARG HELM_VERSION=3.14.2
+ARG TF_VERSION=1.5.7
 ARG TG_VERSION=0.55.13
 ARG TG_ATLANTIS_VERSION=1.17.4
 ARG CONFTEST_VERSION=0.50.0
@@ -14,23 +17,31 @@ ARG GLAB_VERSION=1.37.0
 ARG GOJQ_VERSION=0.12.14
 ARG YQ_VERSION=4.42.1
 ARG AZURE_CLI_VERSION=2.58.0
+ARG AWS_CLI_VERSION=2.13.25-r0
 ARG CHECKOV_VERSION=3.2.36
 ARG INFRACOST_VERSION=v0.10.34
 ARG TFLINT_VERSION=0.50.3
 ARG TERRAFORM_DOCS_VERSION=0.17.0
 
+USER root
+
 RUN set -ex && \
     apk update && \
-    apk add bash py3-pip curl && \
-    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make curl unzip aws-cli
-
-###
-### Install Checkov
-### wtih --break-system-packages due to https://peps.python.org/pep-0668/
-RUN set -ex && \
+    apk add bash py3-pip curl aws-cli=${AWS_CLI_VERSION} && \
+    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make unzip && \
     pip install --upgrade pip --break-system-packages && \
     pip install --upgrade setuptools --break-system-packages && \
-    pip install checkov==${CHECKOV_VERSION} --break-system-packages
+    ###
+    ### Install Checkov
+    ### with --break-system-packages due to https://peps.python.org/pep-0668/
+    pip install checkov==${CHECKOV_VERSION} --break-system-packages && \
+    ###
+    ### Ensure Azure cli version is present and validated
+    ### with --break-system-packages due to https://peps.python.org/pep-0668/
+    pip install azure-cli==${AZURE_CLI_VERSION} --break-system-packages && \
+    az --version && \
+    ### cleanup build dependencies
+    apk del build
 
 # Download and install Infracost
 RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACOST_VERSION}/infracost-linux-amd64.tar.gz && \
@@ -38,14 +49,6 @@ RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACO
     mv infracost-linux-amd64 /usr/bin/infracost && \
     chmod a+x /usr/bin/infracost && \
     rm -rf infracost-linux-amd64*
-
-###
-### Ensure Azure cli version is present and validated
-### wtih --break-system-packages due to https://peps.python.org/pep-0668/
-RUN set -eux \
-    && pip install azure-cli==${AZURE_CLI_VERSION} --break-system-packages \
-    && az --version
-
 
 # Download and install terragrunt-atlantis-config
 RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/releases/download/v${TG_ATLANTIS_VERSION}/terragrunt-atlantis-config_${TG_ATLANTIS_VERSION}_linux_amd64.tar.gz && \
@@ -80,6 +83,7 @@ RUN bash -l -c " \
     cd /home/atlantis/ && \
     asdf install kubectl ${K8S_VERSION} && \
     asdf install helm ${HELM_VERSION} && \
+    asdf install terraform ${TF_VERSION} && \
     asdf install terragrunt ${TG_VERSION} && \
     asdf install conftest ${CONFTEST_VERSION} && \
     asdf install glab ${GLAB_VERSION} && \
@@ -89,6 +93,7 @@ RUN bash -l -c " \
     asdf install yq ${YQ_VERSION} && \
     asdf global kubectl ${K8S_VERSION} && \
     asdf global helm ${HELM_VERSION} && \
+    asdf global terraform ${TF_VERSION} && \
     asdf global terragrunt ${TG_VERSION} && \
     asdf global conftest ${CONFTEST_VERSION} && \
     asdf global glab ${GLAB_VERSION} && \
@@ -98,8 +103,10 @@ RUN bash -l -c " \
     asdf global yq ${YQ_VERSION}"
 
 USER root
-# Additional cleanup
-RUN rm -rf /tmp/*
+# Additional cleanup for multiple existing terraform versions
+RUN rm -f /usr/local/bin/terraform* && \
+    rm -rf /tmp/*
+
 # Add 'alias' `jq` to `gojq`
 RUN echo -e '#!/bin/bash \nexec gojq "$@"' > /usr/local/bin/jq && chmod +x /usr/local/bin/jq
 
