@@ -7,8 +7,8 @@ FROM ghcr.io/runatlantis/atlantis:${ATLANTIS_VERSION} AS base
 # Default tool versions installed in that image
 
 ARG ASDF_VERSION=v0.14.0
-ARG K8S_VERSION=1.29.2
-ARG HELM_VERSION=3.14.2
+ARG K8S_VERSION=1.30.0
+ARG HELM_VERSION=3.14.4
 ARG TF_VERSION=1.5.7
 ARG TG_VERSION=0.55.13
 ARG TG_ATLANTIS_VERSION=1.17.4
@@ -18,8 +18,8 @@ ARG GOJQ_VERSION=0.12.14
 ARG YQ_VERSION=4.42.1
 ARG AZURE_CLI_VERSION=2.58.0
 ARG AWS_CLI_VERSION=2.13.25-r0
-ARG CHECKOV_VERSION=3.2.36
-ARG INFRACOST_VERSION=v0.10.34
+ARG CHECKOV_VERSION=3.2.74
+ARG INFRACOST_VERSION=0.10.35
 ARG TFLINT_VERSION=0.50.3
 ARG TERRAFORM_DOCS_VERSION=0.17.0
 
@@ -27,14 +27,10 @@ USER root
 
 RUN set -ex && \
     apk update && \
-    apk add bash py3-pip curl aws-cli=${AWS_CLI_VERSION} && \
+    apk add py3-pip curl aws-cli=${AWS_CLI_VERSION} && \
     apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev cargo make unzip && \
     pip install --upgrade pip --break-system-packages && \
     pip install --upgrade setuptools --break-system-packages && \
-    ###
-    ### Install Checkov
-    ### with --break-system-packages due to https://peps.python.org/pep-0668/
-    pip install checkov==${CHECKOV_VERSION} --break-system-packages && \
     ###
     ### Ensure Azure cli version is present and validated
     ### with --break-system-packages due to https://peps.python.org/pep-0668/
@@ -43,13 +39,6 @@ RUN set -ex && \
     ### cleanup build dependencies
     apk del build
 
-# Download and install Infracost
-RUN curl -LOs https://github.com/infracost/infracost/releases/download/${INFRACOST_VERSION}/infracost-linux-amd64.tar.gz && \
-    tar xzf infracost-linux-amd64.tar.gz && \
-    mv infracost-linux-amd64 /usr/bin/infracost && \
-    chmod a+x /usr/bin/infracost && \
-    rm -rf infracost-linux-amd64*
-
 # Download and install terragrunt-atlantis-config
 RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/releases/download/v${TG_ATLANTIS_VERSION}/terragrunt-atlantis-config_${TG_ATLANTIS_VERSION}_linux_amd64.tar.gz && \
     tar xzf terragrunt-atlantis-config_${TG_ATLANTIS_VERSION}_linux_amd64.tar.gz && \
@@ -57,16 +46,20 @@ RUN curl -LOs https://github.com/transcend-io/terragrunt-atlantis-config/release
     chmod a+x /usr/bin/terragrunt-atlantis-config && \
     rm -rf terragrunt-atlantis-config_${TG_ATLANTIS_VERSION}_linux_amd64*
 
-# Download and install asdf, create .profile and source asdf inside
+# Download and install asdf
 USER atlantis
-# Install asdf for the atlantis user
-RUN git clone --quiet https://github.com/asdf-vm/asdf.git /home/atlantis/.asdf --branch ${ASDF_VERSION} && \
-    echo '. /home/atlantis/.asdf/asdf.sh' >> /home/atlantis/.profile && \
-    chown atlantis.atlantis /home/atlantis/.profile && \
-    chmod u+rw /home/atlantis/.profile
+
+RUN git clone --quiet https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch ${ASDF_VERSION}
+
+# Create .profile and source asdf inside
+# ASDF_DIR is not automatically detected for sh
+RUN echo 'export ASDF_DIR=$HOME/.asdf' >> $HOME/.profile && \
+    echo '. $HOME/.asdf/asdf.sh' >> $HOME/.profile && \
+    chown $USER.root $HOME/.profile && \
+    chmod u+rw $HOME/.profile
 
 # Install all needed plugins
-RUN bash -l -c " \
+RUN sh -l -c " \
     asdf plugin-add kubectl && \
     asdf plugin-add helm && \
     asdf plugin-add terragrunt && \
@@ -76,11 +69,12 @@ RUN bash -l -c " \
     asdf plugin-add gojq && \
     asdf plugin-add tflint && \
     asdf plugin-add terraform-docs && \
-    asdf plugin-add yq"
+    asdf plugin-add yq && \
+    asdf plugin-add checkov && \
+    asdf plugin-add infracost"
 
 # Install default versions and define them globally
-RUN bash -l -c " \
-    cd /home/atlantis/ && \
+RUN sh -l -c " \
     asdf install kubectl ${K8S_VERSION} && \
     asdf install helm ${HELM_VERSION} && \
     asdf install terraform ${TF_VERSION} && \
@@ -91,6 +85,8 @@ RUN bash -l -c " \
     asdf install tflint ${TFLINT_VERSION} && \
     asdf install terraform-docs ${TERRAFORM_DOCS_VERSION} && \
     asdf install yq ${YQ_VERSION} && \
+    asdf install checkov ${CHECKOV_VERSION} && \
+    asdf install infracost ${INFRACOST_VERSION} && \
     asdf global kubectl ${K8S_VERSION} && \
     asdf global helm ${HELM_VERSION} && \
     asdf global terraform ${TF_VERSION} && \
@@ -100,18 +96,24 @@ RUN bash -l -c " \
     asdf global gojq ${GOJQ_VERSION} && \
     asdf global tflint ${TFLINT_VERSION} && \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
-    asdf global yq ${YQ_VERSION}"
+    asdf global yq ${YQ_VERSION} && \
+    asdf global checkov ${CHECKOV_VERSION} && \
+    asdf global infracost ${INFRACOST_VERSION}"
+
+# Additional cleanup for non default terraform versions, pip cache, tmp
+RUN pip cache purge
 
 USER root
-# Additional cleanup for non default terraform versions
+
 RUN rm -f /usr/local/bin/terraform*.* && \
+    pip cache purge && \
     rm -rf /tmp/*
 
 # Add 'alias' `jq` to `gojq`
-RUN echo -e '#!/bin/bash \nexec gojq "$@"' > /usr/local/bin/jq && chmod +x /usr/local/bin/jq
+RUN echo -e '#!/bin/sh \nexec gojq "$@"' > /usr/local/bin/jq && chmod +x /usr/local/bin/jq
 
-# Set atlantis login shell to bash
-RUN sed -i s#atlantis:/sbin/nologin#atlantis:/bin/bash#g /etc/passwd
+# Set atlantis login shell to sh
+RUN sed -i s#atlantis:/sbin/nologin#atlantis:/bin/sh#g /etc/passwd
 
 COPY check-gitlab-approvals.sh /usr/local/bin/check-gitlab-approvals.sh
 COPY pull-gitlab-variables.sh /usr/local/bin/pull-gitlab-variables.sh
@@ -121,12 +123,12 @@ RUN chmod a+x /usr/local/bin/check-gitlab-approvals.sh && \
 
 USER atlantis
 # Add GitHub and GitLab to known keys file for safe SSH connections
-RUN mkdir -p /home/atlantis/.ssh && \
-    chmod 0700 /home/atlantis/.ssh && \
-    touch /home/atlantis/.ssh/known_hosts && \
-    chmod 0600 /home/atlantis/.ssh/known_hosts && \
-    ssh-keyscan -H github.com >> /home/atlantis/.ssh/known_hosts && \
-    ssh-keyscan -H gitlab.com >> /home/atlantis/.ssh/known_hosts
+RUN mkdir -p $HOME/.ssh && \
+    chmod 0700 $HOME/.ssh && \
+    touch $HOME/.ssh/known_hosts && \
+    chmod 0600 $HOME/.ssh/known_hosts && \
+    ssh-keyscan -H github.com >> $HOME/.ssh/known_hosts && \
+    ssh-keyscan -H gitlab.com >> $HOME/.ssh/known_hosts
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["server"]
