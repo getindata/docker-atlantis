@@ -51,6 +51,8 @@ USER atlantis
 
 RUN git clone --quiet https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch ${ASDF_VERSION}
 
+ENV PATH=$PATH:/home/atlantis/.asdf/bin:/home/atlantis/.asdf/shims
+
 # Create .profile and source asdf inside
 # ASDF_DIR is not automatically detected for sh
 RUN echo 'export ASDF_DIR=$HOME/.asdf' >> $HOME/.profile && \
@@ -59,8 +61,7 @@ RUN echo 'export ASDF_DIR=$HOME/.asdf' >> $HOME/.profile && \
     chmod u+rw $HOME/.profile
 
 # Install all needed plugins
-RUN sh -l -c " \
-    asdf plugin-add kubectl && \
+RUN asdf plugin-add kubectl && \
     asdf plugin-add helm && \
     asdf plugin-add terragrunt && \
     asdf plugin-add terraform && \
@@ -71,11 +72,10 @@ RUN sh -l -c " \
     asdf plugin-add terraform-docs && \
     asdf plugin-add yq && \
     asdf plugin-add checkov && \
-    asdf plugin-add infracost"
+    asdf plugin-add infracost
 
 # Install default versions and define them globally
-RUN sh -l -c " \
-    asdf install kubectl ${K8S_VERSION} && \
+RUN asdf install kubectl ${K8S_VERSION} && \
     asdf install helm ${HELM_VERSION} && \
     asdf install terraform ${TF_VERSION} && \
     asdf install terragrunt ${TG_VERSION} && \
@@ -98,14 +98,14 @@ RUN sh -l -c " \
     asdf global terraform-docs ${TERRAFORM_DOCS_VERSION} && \
     asdf global yq ${YQ_VERSION} && \
     asdf global checkov ${CHECKOV_VERSION} && \
-    asdf global infracost ${INFRACOST_VERSION}"
+    asdf global infracost ${INFRACOST_VERSION}
 
 # Additional cleanup for non default terraform versions, pip cache, tmp
 RUN pip cache purge
 
 USER root
 
-RUN rm -f /usr/local/bin/terraform*.* && \
+RUN rm -f /usr/local/bin/terraform* && \
     pip cache purge && \
     rm -rf /tmp/*
 
