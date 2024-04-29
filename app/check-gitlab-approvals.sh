@@ -34,7 +34,7 @@
 # - HEAD_REPO_NAME
 # - PULL_NUM
 
-# Get approval-config.yaml file path from: environment variable or 1st argument, 
+# Get approval-config.yaml file path from: environment variable or 1st argument,
 # use default when nothing is set
 if [ $# -gt 0 ]; then
   # if ARG is passed to script, use it

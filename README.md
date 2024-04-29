@@ -17,7 +17,7 @@
 
 That custom `atlantis` docker image was created in order to install few helpful tools into "stock" solution:
 - `terragrunt-atlantis-config` - script that dynamically generates `atlantis.yaml` for terragrunt configurations
-- `checkov` - security and "best-practice" scanner (static code analysis)
+- `checkov` (via asdf) - security and "best-practice" scanner (static code analysis)
 - `asdf` - version manager used to install needed packeges and versions <http://asdf-vm.com/>
 - `terragrunt` (via asdf) - thin terraform wrapper
 - `terraform` (via asdf) - IaC automation
@@ -29,12 +29,11 @@ That custom `atlantis` docker image was created in order to install few helpful 
 - `yq` (via asdf) - command like YAML parser
 - `glab` (via asdf) - GitLab CLI client
 - `az-cli` (via pip) - Azure CLI
-- `Infracost` - cloud cost estimates
+- `infracost` (via asdf) - cloud cost estimates
 - `aws-cli` (via apk) - AWS CLI
 
 Files found in the repo:
 - `Dockerfile` is based on an official atlantis docker file (<https://github.com/runatlantis/atlantis/blob/v0.17.3/Dockerfile>) with some additional tweaks (asdf installation and configuration)
-- `docker-entrypoint.sh` is based on original file from atlantis repo <https://github.com/runatlantis/atlantis/blob/v0.19.8/docker-entrypoint.sh> with additional tweaks like invoking `bash` to run `atlantis` (due to `asdf` needs)
 - `check-gitlab-approvals.sh` is a script, intended to work around GitLab CE repository security limitations (CODEOWNERS, allowed approvers, etc.)
 - `approval-config-example.yaml` is a sample approver config used by `check-gitlab-approvers.sh` script
 - `pull-gitlab-variables.sh` is a script that pulls GitLab variables and creates string with environment variables to be used by Atlantis in `multienv` step (see: https://www.runatlantis.io/docs/custom-workflows.html#multiple-environment-variables-multienv-command)
