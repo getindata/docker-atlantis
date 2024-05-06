@@ -16,6 +16,7 @@
 #   REPOSITORY:
 #     allowed_approvers:
 #       - GITLAB_USERNAME
+#     allow_author_approval: false
 #   getindata/devops/dummy-test-project:
 #     allowed_approvers:
 #       - john.doe
@@ -60,12 +61,15 @@ declare -a RESULT
 
 # Get repository approvers configuration
 YQ_QUERY=".repository.$REPO_NAME.allowed_approvers.[] // .allowed_approvers.[]"
+ALLOW_AUTHOR_APPROVAL_QUERY=".repository.$REPO_NAME.allow_author_approval // true"
 if [ -v APPROVAL_CONFIG ] && [ ! -z "$APPROVAL_CONFIG" ]; then
   # If env is set and not empty - read approvers configuration yaml directly from ENV
   APPROVERS_ALLOWED=($(yq --null-input eval "env(APPROVAL_CONFIG)" | yq eval "${YQ_QUERY}" - | sort))
+  ALLOW_AUTHOR_APPROVAL=$(yq --null-input eval "env(APPROVAL_CONFIG)" | yq eval "${ALLOW_AUTHOR_APPROVAL_QUERY}" -)
 elif [ -f $APPROVAL_CONFIG_PATH ]; then
   # If file passed through APPROVAL_CONFIG_PATH env exists, try to parse it
   APPROVERS_ALLOWED=($(yq eval "${YQ_QUERY}" ${APPROVAL_CONFIG_PATH} | sort))
+  ALLOW_AUTHOR_APPROVAL=$(yq eval "${ALLOW_AUTHOR_APPROVAL_QUERY}" ${APPROVAL_CONFIG_PATH})
 else
   printf "GitLab approval configuration file not found in '%s' nor in \$APPROVAL_CONFIG - will not continue...\n" ${APPROVAL_CONFIG_PATH}
   exit 1;
@@ -78,7 +82,14 @@ APPROVERS_GITLAB=($(jq -rn --arg x "${REPO_NAME}" '$x|@uri' | xargs -i glab api 
 RESULT=($(comm -12 <(printf '%s\n' ${APPROVERS_ALLOWED[@]}) <(printf '%s\n' ${APPROVERS_GITLAB[@]})))
 
 if [ ${#RESULT[@]} -gt 0 ]; then
-  printf "MR approved correctly by [%s]\n" $(IFS=,; printf %s "${RESULT[*]}")
+  MERGE_REQUEST_AUTHOR=$(jq -rn --arg x "${REPO_NAME}" '$x|@uri' | xargs -i glab api projects/{}/merge_requests/$PULL_NUM | jq '.author.username')
+
+  if [ "${RESULT[*]}" == "$MERGE_REQUEST_AUTHOR" ] && [ "$ALLOW_AUTHOR_APPROVAL" == "false" ]; then
+    printf "MR approved only by the author - will not continue...\n"
+    exit 1;
+  else
+    printf "MR approved correctly by [%s]\n" $(IFS=,; printf %s "${RESULT[*]}")
+  fi
 elif [ ${#APPROVERS_ALLOWED[@]} -eq 0 ]; then
   printf "Missing or bad configuration for '$REPO_NAME' repo in approval configuration - will not continue...\n"
   exit 1;
